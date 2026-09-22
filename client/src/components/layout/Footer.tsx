@@ -1,40 +1,64 @@
-import { Building2, Mail, MapPin, Phone } from "lucide-react";
+import { ArrowUpRight, Mail, MapPin, Phone, Stethoscope } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ctaClass } from "../ui/cta";
+import { Ticker } from "../ui/Ticker";
+import { SplitWords } from "../ui/SplitWords";
+import { usePublicCabinet } from "../../hooks/usePublicCabinet";
 
 export function Footer() {
+  const cabinet = usePublicCabinet();
+
   return (
-    <footer className="border-t border-white/10 bg-ink text-white">
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-[1.1fr_0.9fr_0.9fr] lg:px-8">
+    <footer className="relative border-t border-line">
+      <div className="border-b border-line py-8">
+        <Ticker items={["CNOPS", "CNSS", "Mutuelles privées", "Ordre des Médecins", "Tiers payant"]} variant="outline" />
+      </div>
+
+      <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
+        <SplitWords as="h2" text="Besoin d'un rendez-vous ? *Appelez-nous.*" className="display max-w-3xl text-4xl text-ink sm:text-5xl md:text-6xl" />
+        <div className="mt-8 flex flex-wrap items-center gap-4">
+          <a href="#contact" className={ctaClass("primary")}>
+            Prendre rendez-vous <ArrowUpRight size={16} />
+          </a>
+          <a href={`tel:${(cabinet.phone || "+212522000000").replace(/\s/g, "")}`} className={ctaClass("outline")}>
+            <Phone size={16} /> {cabinet.phone || "+212 522 00 00 00"}
+          </a>
+        </div>
+      </div>
+
+      <div className="mx-auto grid max-w-7xl gap-10 border-t border-line px-4 py-14 sm:px-6 md:grid-cols-[1.1fr_0.9fr_0.9fr] lg:px-8">
         <div>
           <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-lg bg-white/10 text-gold-200">
-              <Building2 size={19} />
+            <span className="grid h-10 w-10 place-items-center rounded-xl border border-line bg-sage-50 text-sage-700">
+              <Stethoscope size={19} />
             </span>
-            <p className="text-lg font-extrabold">Cabinet Pro</p>
+            <p className="text-lg font-extrabold text-ink">{cabinet.cabinetName}</p>
           </div>
-          <p className="mt-4 max-w-md leading-7 text-white/64">
-            Une presence digitale sobre, fiable et rassurante pour organiser les rendez-vous, les dossiers et la relation avec vos clients ou patients.
+          <p className="mt-4 max-w-md leading-7 text-muted">
+            Un cabinet médical pluridisciplinaire à taille humaine : consultations, suivi coordonné et dossiers
+            confidentiels, pour toute la famille.
           </p>
         </div>
         <div>
-          <p className="text-sm font-extrabold uppercase tracking-[0.22em] text-gold-200">Navigation</p>
-          <div className="mt-4 grid gap-3 text-sm text-white/70">
-            <a href="#services" className="transition hover:text-white">Prestations</a>
-            <a href="#about" className="transition hover:text-white">A propos</a>
-            <a href="#contact" className="transition hover:text-white">Contact</a>
-            <a href="/login" className="transition hover:text-white">Espace cabinet</a>
+          <p className="eyebrow">Navigation</p>
+          <div className="mt-4 grid gap-3 text-sm text-muted">
+            <a href="#specialites" className="w-fit transition hover:text-sage-700">Spécialités</a>
+            <a href="#equipe" className="w-fit transition hover:text-sage-700">Notre équipe</a>
+            <a href="#contact" className="w-fit transition hover:text-sage-700">Rendez-vous</a>
+            <Link to="/login" className="w-fit transition hover:text-sage-700">Espace cabinet</Link>
           </div>
         </div>
         <div>
-          <p className="text-sm font-extrabold uppercase tracking-[0.22em] text-gold-200">Coordonnees</p>
-          <div className="mt-4 grid gap-3 text-sm text-white/70">
-            <span className="flex items-center gap-3"><Mail size={16} /> contact@cabinet-atlas.ma</span>
-            <span className="flex items-center gap-3"><Phone size={16} /> +212 522 00 00 00</span>
-            <span className="flex items-center gap-3"><MapPin size={16} /> Casablanca, Maroc</span>
+          <p className="eyebrow">Coordonnées</p>
+          <div className="mt-4 grid gap-3 text-sm text-muted">
+            <span className="flex items-center gap-3"><Mail size={16} className="text-sage-600" /> {cabinet.email || "contact@cabinet-atlas.ma"}</span>
+            <span className="flex items-center gap-3"><Phone size={16} className="text-sage-600" /> {cabinet.phone || "+212 522 00 00 00"}</span>
+            <span className="flex items-center gap-3"><MapPin size={16} className="text-sage-600" /> {cabinet.address || "Casablanca, Maroc"}</span>
           </div>
         </div>
       </div>
-      <div className="border-t border-white/10 px-4 py-5 text-center text-xs font-semibold text-white/45">
-        © {new Date().getFullYear()} Cabinet Pro. Tous droits reserves.
+      <div className="border-t border-line px-4 py-5 text-center text-xs font-semibold text-muted">
+        © {new Date().getFullYear()} {cabinet.cabinetName}. Tous droits réservés.
       </div>
     </footer>
   );

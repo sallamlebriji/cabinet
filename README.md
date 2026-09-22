@@ -49,6 +49,17 @@ npm run build
 
 La documentation des endpoints est disponible dans [docs/API.md](docs/API.md).
 
+## Site public (cabinet médical)
+
+Les pages publiques (`/`, `/login`, `/register`) sont conçues comme la vitrine d'un vrai cabinet
+médical pluridisciplinaire : palette claire sauge/argile, grande typographie éditoriale, photos
+réelles composées en profondeur (parallaxe au pointeur, cartes inclinées en 3D CSS au survol),
+sections Spécialités / Équipe / Avis / Rendez-vous numérotées façon chapitre. L'espace cabinet
+(`/dashboard`, `/clients`, ...) garde son thème clair d'origine et n'est pas concerné.
+
+Pour remplacer la photo du hero par un visuel généré (ex. avec [Higgsfield](https://higgsfield.ai/)),
+voir [docs/HIGGSFIELD.md](docs/HIGGSFIELD.md).
+
 ## Schémas MongoDB
 
 Les modèles Mongoose se trouvent dans `server/src/models`:

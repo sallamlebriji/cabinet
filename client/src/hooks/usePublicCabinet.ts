@@ -10,7 +10,7 @@ export type PublicCabinet = {
 };
 
 const fallbackCabinet: PublicCabinet = {
-  cabinetName: "Cabinet Atlas",
+  cabinetName: "Centre Médical Atlas",
   email: "contact@cabinet-atlas.ma",
   phone: "+212 522 00 00 00",
   address: "Casablanca, Maroc",

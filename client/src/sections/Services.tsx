@@ -1,35 +1,50 @@
-import { BriefcaseBusiness, CalendarCheck, FileText, Handshake, Scale, ShieldCheck } from "lucide-react";
-import { Card } from "../components/ui/Card";
+import { Baby, Flower2, HeartPulse, PersonStanding, Sparkles, Stethoscope } from "lucide-react";
 import { SectionReveal } from "../components/ui/SectionReveal";
+import { SplitWords } from "../components/ui/SplitWords";
+import { Tilt } from "../components/three/Tilt";
 
-const services = [
-  { title: "Consultation initiale", description: "Analyse de votre situation, qualification de la demande et orientation vers le bon interlocuteur.", icon: Handshake },
-  { title: "Suivi de dossier", description: "Pieces, notes, historique et prochaines actions organises dans un parcours lisible.", icon: FileText },
-  { title: "Rendez-vous planifies", description: "Creneaux confirmes, rappels utiles et gestion fluide des changements de planning.", icon: CalendarCheck },
-  { title: "Accompagnement professionnel", description: "Prise en charge structuree des demandes recurrentes pour entreprises et dirigeants.", icon: BriefcaseBusiness },
-  { title: "Conseil et conformite", description: "Methodologie rigoureuse, preparation documentaire et respect des obligations.", icon: Scale },
-  { title: "Confidentialite", description: "Acces controles, donnees protegees et communication sobrement centralisee.", icon: ShieldCheck }
+const specialites = [
+  { title: "Médecine générale", description: "Consultations, bilans de routine et orientation vers le bon spécialiste.", icon: Stethoscope },
+  { title: "Pédiatrie", description: "Suivi de croissance, vaccins et consultations pour les enfants dès la naissance.", icon: Baby },
+  { title: "Cardiologie", description: "Bilans cardiovasculaires, ECG et suivi des patients à risque.", icon: HeartPulse },
+  { title: "Gynécologie", description: "Suivi gynécologique, grossesse et prévention à chaque étape de la vie.", icon: Flower2 },
+  { title: "Dermatologie", description: "Diagnostic de la peau, traitements et suivi dermatologique personnalisé.", icon: Sparkles },
+  { title: "Kinésithérapie", description: "Rééducation fonctionnelle et accompagnement post-opératoire sur mesure.", icon: PersonStanding }
 ];
 
 export function Services({ cabinetName }: { cabinetName: string }) {
   return (
-    <section id="services" className="bg-cream px-4 py-24 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
-        <SectionReveal className="max-w-3xl">
-          <p className="section-kicker">Prestations</p>
-          <h2 className="mt-3 font-serif text-4xl font-bold tracking-normal text-ink md:text-5xl">Les services essentiels de {cabinetName}.</h2>
-          <p className="mt-5 max-w-2xl leading-8 text-muted">Une experience claire, rassurante et efficace, adaptee aux cabinets medicaux, dentaires, juridiques, comptables, de conseil ou d'architecture.</p>
+    <section id="specialites" className="relative px-4 py-16 sm:px-6 sm:py-28 lg:px-8">
+      <span aria-hidden className="chapter-num pointer-events-none absolute -top-10 right-0 select-none text-[24vw] sm:text-[16vw] lg:text-[11vw]">
+        02
+      </span>
+      <div className="relative mx-auto max-w-7xl">
+        <SectionReveal className="max-w-2xl">
+          <p className="eyebrow">Spécialités</p>
+          <SplitWords as="h2" text={`Les soins réunis de *${cabinetName}*.`} className="display mt-4 text-4xl text-ink md:text-6xl" />
+          <p className="mt-6 max-w-xl leading-8 text-muted">
+            Une équipe pluridisciplinaire, un dossier patient unique et un accueil pensé pour rassurer, de la
+            première consultation au suivi le plus régulier.
+          </p>
         </SectionReveal>
-        <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {services.map(({ title, description, icon: Icon }, index) => (
-            <SectionReveal key={title} transition={{ delay: index * 0.04, duration: 0.55 }}>
-              <Card className="group h-full p-6 transition duration-300 hover:-translate-y-1 hover:border-gold-200 hover:shadow-premium">
-                <div className="grid h-12 w-12 place-items-center rounded-lg bg-petrol-50 text-petrol-600 transition group-hover:bg-ink group-hover:text-gold-200">
+
+        <div className="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {specialites.map(({ title, description, icon: Icon }, index) => (
+            <SectionReveal key={title} transition={{ delay: index * 0.05, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}>
+              <Tilt className="h-full" innerClassName="glass-panel group h-full p-6 transition-colors duration-300 hover:border-sage-300">
+                <div
+                  style={{ transform: "translateZ(38px)" }}
+                  className="grid h-12 w-12 place-items-center rounded-xl bg-gradient-to-br from-sage-500 to-sage-700 text-ivory shadow-sage transition-transform duration-300 group-hover:scale-105"
+                >
                   <Icon size={22} />
                 </div>
-                <h3 className="mt-6 text-xl font-extrabold text-ink">{title}</h3>
-                <p className="mt-3 leading-7 text-muted">{description}</p>
-              </Card>
+                <h3 style={{ transform: "translateZ(26px)" }} className="mt-6 text-xl font-extrabold text-ink">
+                  {title}
+                </h3>
+                <p style={{ transform: "translateZ(20px)" }} className="mt-3 leading-7 text-muted">
+                  {description}
+                </p>
+              </Tilt>
             </SectionReveal>
           ))}
         </div>
