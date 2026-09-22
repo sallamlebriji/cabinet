@@ -130,40 +130,71 @@ body {
     @apply display pointer-events-none select-none text-ink/[0.05];
   }
 
-  /* Boutons : relief « touche de clavier » — la face descend quand on appuie. */
+  /* Boutons : encre unie, ombre douce diffuse, léger balayage lumineux au survol —
+     pas de relief "bonbon" (plus d'ombre plate en marche d'escalier). */
   .cta {
-    @apply relative inline-flex h-12 items-center justify-center gap-2 whitespace-nowrap rounded-full px-6 text-sm font-bold no-underline transition duration-200;
+    @apply relative inline-flex h-12 items-center justify-center gap-2.5 whitespace-nowrap rounded-full px-6 text-sm font-bold no-underline;
     @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-500 focus-visible:ring-offset-2 focus-visible:ring-offset-cream;
     @apply disabled:cursor-not-allowed disabled:opacity-60;
+    overflow: hidden;
+    transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 320ms cubic-bezier(0.22, 1, 0.36, 1), border-color 320ms ease, background-color 320ms ease;
+  }
+
+  .cta svg {
+    transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .cta:hover svg {
+    transform: translateX(3px);
+  }
+
+  .cta:active {
+    transform: scale(0.98);
+  }
+
+  /* Balayage lumineux diagonal, désactivé pour qui préfère moins de mouvement. */
+  @media (prefers-reduced-motion: no-preference) {
+    .cta::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(115deg, transparent 42%, rgba(255, 255, 255, 0.16) 50%, transparent 58%);
+      transform: translateX(-130%);
+      transition: transform 900ms ease;
+      pointer-events: none;
+    }
+
+    .cta:hover::before {
+      transform: translateX(130%);
+    }
   }
 
   .cta-primary {
     color: #fdfbf7;
-    background: linear-gradient(180deg, #5c7f54 0%, #3f6c5b 100%);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 5px 0 #23392c, 0 16px 30px -6px rgba(31, 51, 39, 0.4);
+    background: #12181f;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 1px 2px rgba(16, 25, 35, 0.15), 0 16px 32px -14px rgba(16, 25, 35, 0.55);
   }
 
   .cta-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 7px 0 #23392c, 0 22px 36px -6px rgba(31, 51, 39, 0.45);
+    transform: translateY(-1.5px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 0 1px rgba(92, 127, 84, 0.5), 0 20px 36px -14px rgba(16, 25, 35, 0.6);
   }
 
   .cta-primary:active {
-    transform: translateY(4px);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 1px 0 #23392c, 0 6px 12px rgba(31, 51, 39, 0.4);
+    transform: scale(0.98);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 18px -10px rgba(16, 25, 35, 0.5);
   }
 
   .cta-outline {
     color: #101923;
-    background: rgba(255, 255, 255, 0.6);
-    border: 1px solid rgba(16, 25, 35, 0.14);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    background: transparent;
+    border: 1.5px solid rgba(16, 25, 35, 0.16);
   }
 
   .cta-outline:hover {
-    background: #ffffff;
-    border-color: rgba(63, 108, 91, 0.45);
-    transform: translateY(-2px);
+    transform: translateY(-1.5px);
+    border-color: #101923;
+    background: rgba(16, 25, 35, 0.035);
   }
 
   .field {
