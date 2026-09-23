@@ -1,45 +1,13 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { FileCheck, RefreshCw, ShieldCheck } from "lucide-react";
 import { PhoneFrame } from "./PhoneFrame";
-import { WebGLPhoto } from "../../webgl/WebGLPhoto";
-import { cn } from "../../utils/cn";
+import { Media } from "./Media";
 
-type Marker = { top: string; left: string; tone: "sage" | "clay"; label: string };
-
-const leftMarkers: Marker[] = [
-  { top: "22%", left: "20%", tone: "sage", label: "Constantes à jour" },
-  { top: "38%", left: "72%", tone: "clay", label: "Allergie signalée" },
-  { top: "64%", left: "28%", tone: "sage", label: "Vaccins à jour" }
-];
-
-const rightMarkers: Marker[] = [
-  { top: "26%", left: "68%", tone: "sage", label: "Ordonnance active" },
-  { top: "55%", left: "24%", tone: "sage", label: "Bilan récent" },
-  { top: "70%", left: "66%", tone: "clay", label: "Rappel à prévoir" }
-];
-
-function Dot({ marker, delay }: { marker: Marker; delay: number }) {
-  return (
-    <span className="absolute -translate-x-1/2 -translate-y-1/2" style={{ top: marker.top, left: marker.left }}>
-      <span className="relative flex h-3 w-3">
-        <span
-          className={cn("absolute inline-flex h-full w-full animate-ping rounded-full opacity-60", marker.tone === "sage" ? "bg-sage-400" : "bg-clay-300")}
-          style={{ animationDelay: `${delay}ms` }}
-        />
-        <span className={cn("relative inline-flex h-3 w-3 rounded-full border-2 border-ivory", marker.tone === "sage" ? "bg-sage-600" : "bg-clay-500")} />
-      </span>
-    </span>
-  );
-}
-
-function ResultScreen({ photoId, doctor, tab, markers }: { photoId: string; doctor: string; tab: string; markers: Marker[] }) {
+function ResultScreen({ photoId, doctor, tab }: { photoId: string; doctor: string; tab: string }) {
   return (
     <div className="flex h-full flex-col">
       <div className="relative flex-1">
-        <WebGLPhoto src={`https://images.unsplash.com/photo-${photoId}?auto=format&fit=crop&w=400&q=75`} alt={`Vue du dossier suivi par ${doctor}`} className="h-full w-full" />
-        {markers.map((marker, index) => (
-          <Dot key={marker.label} marker={marker} delay={index * 260} />
-        ))}
+        <Media src={`https://images.unsplash.com/photo-${photoId}?auto=format&fit=crop&w=400&q=75`} alt={`Vue du dossier suivi par ${doctor}`} className="h-full w-full" />
         <span className="absolute left-2 top-2 rounded-full bg-ink/70 px-2 py-1 text-[9px] font-bold text-ivory backdrop-blur">{doctor}</span>
       </div>
       <div className="flex items-center justify-around border-t border-line bg-ivory px-2 py-2 text-[9px] font-bold text-muted">
@@ -63,7 +31,7 @@ function SyncScreen() {
             cy="40"
             r="34"
             fill="none"
-            stroke="#a3bf9a"
+            stroke="#7fb0ec"
             strokeWidth="4"
             strokeLinecap="round"
             initial={{ pathLength: 0 }}
@@ -89,7 +57,7 @@ export function DossierShowcase() {
     <div className="grid grid-cols-3 items-center gap-3 sm:gap-5">
       <div className="translate-y-4">
         <PhoneFrame>
-          <ResultScreen photoId="1622253692010-333f2da6031d" doctor="Dr. Fassi" tab="Vue d'ensemble" markers={leftMarkers} />
+          <ResultScreen photoId="1622253692010-333f2da6031d" doctor="Dr. Fassi" tab="Vue d'ensemble" />
         </PhoneFrame>
       </div>
       <div className="relative z-10 scale-[1.12]">
@@ -99,7 +67,7 @@ export function DossierShowcase() {
       </div>
       <div className="translate-y-4">
         <PhoneFrame>
-          <ResultScreen photoId="1623854767648-e7bb8009f0db" doctor="Dr. Benkirane" tab="Historique" markers={rightMarkers} />
+          <ResultScreen photoId="1623854767648-e7bb8009f0db" doctor="Dr. Benkirane" tab="Historique" />
         </PhoneFrame>
       </div>
     </div>

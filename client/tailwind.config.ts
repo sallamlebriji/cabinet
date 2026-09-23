@@ -50,22 +50,24 @@ export default {
         emerald: {
           500: "#10b981"
         },
-        // Site public (cabinet médical) : vert sauge apaisant + argile chaude en accent secondaire.
+        // Site public (cabinet médical) : bleu médical + cyan, touche teal en accent secondaire.
+        // (Clés `sage`/`clay` conservées pour ne pas retoucher les ~15 fichiers qui les utilisent —
+        // seules les valeurs changent.)
         sage: {
-          50: "#f2f6f1",
-          100: "#e3ebe0",
-          200: "#c7d8c1",
-          300: "#a3bf9a",
-          500: "#5c7f54",
-          600: "#3f6c5b",
-          700: "#33513f",
-          900: "#1f3327"
+          50: "#eef4fd",
+          100: "#dbe7fb",
+          200: "#b8d0f5",
+          300: "#7fb0ec",
+          500: "#0ea5e9",
+          600: "#2563eb",
+          700: "#1d4ed8",
+          900: "#1e3a5f"
         },
         clay: {
-          100: "#f3e4d7",
-          300: "#e0b99a",
-          500: "#c17a4e",
-          600: "#a1613a"
+          100: "#ccfbf1",
+          300: "#5eead4",
+          500: "#14b8a6",
+          600: "#0d9488"
         }
       },
       boxShadow: {
@@ -73,7 +75,7 @@ export default {
         soft: "0 14px 34px rgba(16, 25, 35, 0.07)",
         glow: "0 20px 60px rgba(14, 95, 104, 0.18)",
         depth: "0 1px 0 rgba(255,255,255,0.08) inset, 0 40px 80px -30px rgba(0,0,0,0.75), 0 18px 30px -18px rgba(0,0,0,0.6)",
-        sage: "0 24px 55px -18px rgba(63, 108, 91, 0.4)"
+        sage: "0 24px 55px -18px rgba(37, 99, 235, 0.4)"
       }
     }
   },

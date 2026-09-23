@@ -3,7 +3,7 @@ import { SectionReveal } from "../components/ui/SectionReveal";
 import { SplitWords } from "../components/ui/SplitWords";
 import { TrendCard } from "../components/ui/TrendCard";
 import { Tilt } from "../components/three/Tilt";
-import { WebGLPhoto } from "../webgl/WebGLPhoto";
+import { Media } from "../components/ui/Media";
 import type { PublicCabinet } from "../hooks/usePublicCabinet";
 
 const reasons = [
@@ -60,7 +60,7 @@ export function About({ cabinet }: { cabinet: PublicCabinet }) {
             {team.map(({ name, role, photo }) => (
               <Tilt key={name} max={6} innerClassName="glass-panel overflow-hidden">
                 <div className="aspect-[4/5] overflow-hidden">
-                  <WebGLPhoto
+                  <Media
                     src={`https://images.unsplash.com/photo-${photo}?auto=format&fit=crop&w=500&q=80`}
                     alt={`Portrait de ${name}`}
                     className="h-full w-full"

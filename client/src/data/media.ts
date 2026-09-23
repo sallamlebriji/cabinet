@@ -2,10 +2,8 @@ import { useEffect, useState } from "react";
 
 /**
  * Visuel héro optionnel (par ex. généré avec Higgsfield). Déposez un fichier à l'un de ces
- * chemins dans `client/public/media/` : le hero le détecte tout seul.
- * - `heroVideo` a la priorité : si elle charge, la vidéo joue en boucle à travers le shader de
- *   révélation WebGL (voir `webgl/WebGLPhoto.tsx`) — le même procédé que les hero vidéo "3D
- *   intégré" des sites de référence.
+ * chemins dans `client/public/media/` : le hero le détecte tout seul (voir `components/ui/Media.tsx`).
+ * - `heroVideo` a la priorité : si elle charge vraiment, la vidéo remplace la photo, en boucle.
  * - `heroPhoto` sert de repli si la vidéo est absente ou échoue, à la place de la photo Unsplash.
  * Les deux absents = aucune erreur, la photo par défaut reste affichée. Voir docs/HIGGSFIELD.md.
  */

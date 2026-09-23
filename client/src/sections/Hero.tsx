@@ -8,7 +8,7 @@ import { RotatingWord } from "../components/ui/RotatingWord";
 import { Counter } from "../components/ui/Counter";
 import { PhoneMockup } from "../components/ui/PhoneMockup";
 import { Tilt } from "../components/three/Tilt";
-import { WebGLPhoto } from "../webgl/WebGLPhoto";
+import { Media } from "../components/ui/Media";
 import { media, useImageReady } from "../data/media";
 import type { PublicCabinet } from "../hooks/usePublicCabinet";
 
@@ -124,7 +124,7 @@ export function Hero({ cabinet }: { cabinet: PublicCabinet }) {
 
           <Tilt max={5} glare={false} innerClassName="overflow-hidden rounded-[2rem] border border-line shadow-premium">
             <motion.div style={{ x: mainX, y: mainY }} className="aspect-[4/5]">
-              <WebGLPhoto src={heroPhoto} video={media.heroVideo} alt="Médecin souriant échangeant avec un patient au cabinet" className="h-full w-full" />
+              <Media src={heroPhoto} video={media.heroVideo} alt="Médecin souriant échangeant avec un patient au cabinet" className="h-full w-full" />
             </motion.div>
           </Tilt>
 

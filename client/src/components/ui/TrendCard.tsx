@@ -32,11 +32,11 @@ export function TrendCard() {
           <AreaChart data={data} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
             <defs>
               <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#3f6c5b" stopOpacity={0.35} />
-                <stop offset="100%" stopColor="#3f6c5b" stopOpacity={0} />
+                <stop offset="0%" stopColor="#2563eb" stopOpacity={0.35} />
+                <stop offset="100%" stopColor="#2563eb" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <Area type="monotone" dataKey="value" stroke="#3f6c5b" strokeWidth={2} fill="url(#trendFill)" />
+            <Area type="monotone" dataKey="value" stroke="#2563eb" strokeWidth={2} fill="url(#trendFill)" />
           </AreaChart>
         </ResponsiveContainer>
       </div>

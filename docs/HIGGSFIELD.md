@@ -1,23 +1,23 @@
 # Visuel héro généré (Higgsfield)
 
 Le hero du site public (`client/src/sections/Hero.tsx`) affiche par défaut une photo Unsplash
-vérifiée (médecin souriant avec un patient), rendue dans un canvas WebGL avec un effet de
-révélation façon polaroid. Vous pouvez la remplacer par une **vidéo courte** générée avec
-[Higgsfield](https://higgsfield.ai/) — comme le font les sites de référence dont ce site
-s'inspire (une vidéo qui joue directement dans le visuel principal, pas une photo figée) — ou par
-une simple photo, **sans toucher au code**.
+vérifiée (médecin souriant avec un patient). Vous pouvez la remplacer par une **vidéo courte**
+générée avec [Higgsfield](https://higgsfield.ai/) — comme le font les sites de référence dont ce
+site s'inspire (une vidéo qui joue directement dans le visuel principal, pas une photo figée) —
+ou par une simple photo, **sans toucher au code**.
 
 ## Vidéo (priorité)
 
 1. Générez un plan court (4 à 8 s), en boucle si possible, sur
    [console.higgsfield.ai](https://higgsfield.ai/) : scène chaleureuse de consultation, format
-   portrait proche de **4:5**, cohérente avec la palette du site (sauge/argile, voir
+   portrait proche de **4:5**, cohérente avec la palette du site (voir
    `client/tailwind.config.ts`).
 2. Exportez en MP4 (H.264), poids raisonnable (< 8 Mo conseillé pour un chargement rapide).
 3. Renommez le fichier exactement `hero-video.mp4` et déposez-le dans `client/public/media/`.
-4. Rechargez la page : la vidéo joue en boucle, muette, à travers le même effet de révélation que
-   la photo — elle **remplace automatiquement** la photo par défaut. Si le fichier est absent ou
-   ne charge pas, aucune erreur : la photo prend le relais.
+4. Rechargez la page : la vidéo joue en boucle, muette — elle **remplace automatiquement** la
+   photo par défaut. Si le fichier est absent ou n'est pas une vidéo valide, aucune erreur : la
+   photo prend le relais (`components/ui/Media.tsx` vérifie le vrai type de contenu avant de
+   basculer, pour rester fiable même sur un serveur de dev qui répond 200 pour un fichier absent).
 
 ## Photo (repli, ou si vous préférez une image fixe)
 
@@ -31,6 +31,6 @@ fichier reste volontaire et simple à auditer, sans exposer de clé côté clien
 
 ## Étendre à d'autres visuels
 
-Le composant `client/src/webgl/WebGLPhoto.tsx` accepte un prop `video` optionnel en plus de `src`
-(la photo/poster) — réutilisable sur n'importe quelle photo du site (portraits de l'équipe, photo
-de la section « Notre équipe ») pour lui donner le même traitement vidéo-dans-le-shader.
+Le composant `client/src/components/ui/Media.tsx` accepte un prop `video` optionnel en plus de
+`src` — réutilisable sur n'importe quelle photo du site (portraits de l'équipe, photo de la
+section « Notre équipe ») pour lui donner le même traitement.

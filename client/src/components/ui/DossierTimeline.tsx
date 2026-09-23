@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { AlertTriangle, FileText, HeartPulse, Pill, ScrollText, Stethoscope, Syringe, Users } from "lucide-react";
-import { WebGLPhoto } from "../../webgl/WebGLPhoto";
+import { Media } from "./Media";
 
 const indicators = [
   { icon: AlertTriangle, label: "Allergies", tone: "text-clay-600 bg-clay-100" },
@@ -61,7 +61,7 @@ export function DossierTimeline() {
           {visits.map((visit) =>
             visit.photo ? (
               <div key={visit.month} className="relative z-10 h-9 w-9 overflow-hidden rounded-full border-2 border-sage-600 shadow-soft sm:h-11 sm:w-11">
-                <WebGLPhoto src={`https://images.unsplash.com/photo-${visit.photo}?auto=format&fit=crop&w=100&q=70`} alt={`Consultation de ${visit.month}`} className="h-full w-full" />
+                <Media src={`https://images.unsplash.com/photo-${visit.photo}?auto=format&fit=crop&w=100&q=70`} alt={`Consultation de ${visit.month}`} className="h-full w-full" />
               </div>
             ) : (
               <span key={visit.month} className="relative z-10 h-2 w-2 rounded-full bg-line ring-4 ring-ivory" />
