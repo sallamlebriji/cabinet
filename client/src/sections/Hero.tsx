@@ -124,7 +124,7 @@ export function Hero({ cabinet }: { cabinet: PublicCabinet }) {
 
           <Tilt max={5} glare={false} innerClassName="overflow-hidden rounded-[2rem] border border-line shadow-premium">
             <motion.div style={{ x: mainX, y: mainY }} className="aspect-[4/5]">
-              <WebGLPhoto src={heroPhoto} alt="Médecin souriant échangeant avec un patient au cabinet" className="h-full w-full" />
+              <WebGLPhoto src={heroPhoto} video={media.heroVideo} alt="Médecin souriant échangeant avec un patient au cabinet" className="h-full w-full" />
             </motion.div>
           </Tilt>
 

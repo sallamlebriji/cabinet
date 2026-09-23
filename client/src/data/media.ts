@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
 
 /**
- * Photo héro optionnelle (par ex. générée avec Higgsfield). Déposez un fichier à cet exact
- * chemin dans `client/public/media/` : le hero la détecte tout seul et remplace la photo
- * Unsplash par défaut. Absent = aucune erreur, la photo par défaut reste affichée.
- * Voir docs/HIGGSFIELD.md.
+ * Visuel héro optionnel (par ex. généré avec Higgsfield). Déposez un fichier à l'un de ces
+ * chemins dans `client/public/media/` : le hero le détecte tout seul.
+ * - `heroVideo` a la priorité : si elle charge, la vidéo joue en boucle à travers le shader de
+ *   révélation WebGL (voir `webgl/WebGLPhoto.tsx`) — le même procédé que les hero vidéo "3D
+ *   intégré" des sites de référence.
+ * - `heroPhoto` sert de repli si la vidéo est absente ou échoue, à la place de la photo Unsplash.
+ * Les deux absents = aucune erreur, la photo par défaut reste affichée. Voir docs/HIGGSFIELD.md.
  */
 export const media = {
-  heroPhoto: "/media/hero-photo.jpg"
+  heroPhoto: "/media/hero-photo.jpg",
+  heroVideo: "/media/hero-video.mp4"
 } as const;
 
 /** `true` quand l'image existe vraiment (le serveur SPA renvoie du HTML pour un fichier absent : le chargement échoue). */

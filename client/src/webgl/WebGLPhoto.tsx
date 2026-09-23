@@ -2,21 +2,25 @@ import { useEffect, useRef, useState } from "react";
 import { fragmentShader, vertexShader } from "./shaders";
 
 type WebGLPhotoProps = {
+  /** Image affichée par défaut (aussi le poster tant que la vidéo n'a pas chargé). */
   src: string;
   alt: string;
   className?: string;
-  /** Couleur "polaroid non développé" affichée avant que la photo ne se révèle. */
+  /** Optionnelle : si elle charge, remplace la photo par une vidéo qui joue à travers le même shader. */
+  video?: string;
+  /** Couleur "polaroid non développé" affichée avant que le visuel ne se révèle. */
   tint?: [number, number, number];
 };
 
 /**
- * Photo rendue dans un <canvas> WebGL (plan texturé + shader), à la manière des sites d'agence
- * qui embarquent un canvas pour leurs visuels (cf. otsuka-air.jp) plutôt qu'une simple <img>.
- * Un seul effet, discret et pensé pour un cabinet médical (pas un gadget) : développement façon
- * polaroid quand la photo entre dans le viewport, une fois. Aucune interaction à la souris.
- * Se dégrade en <img> normale si WebGL échoue, ou si l'utilisateur préfère moins d'animation.
+ * Photo (ou vidéo) rendue dans un <canvas> WebGL (plan texturé + shader), à la manière des sites
+ * d'agence qui embarquent un canvas pour leurs visuels (cf. otsuka-air.jp) plutôt qu'une simple
+ * <img>/<video>. Un seul effet, discret et pensé pour un cabinet médical (pas un gadget) :
+ * développement façon polaroid quand le visuel entre dans le viewport, une fois. Aucune
+ * interaction à la souris. Se dégrade en <img> normale si WebGL échoue, ou si l'utilisateur
+ * préfère moins d'animation.
  */
-export function WebGLPhoto({ src, alt, className, tint = [0.243, 0.325, 0.278] }: WebGLPhotoProps) {
+export function WebGLPhoto({ src, alt, className, video, tint = [0.243, 0.325, 0.278] }: WebGLPhotoProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [webglFailed, setWebglFailed] = useState(false);
   const reducedMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -63,33 +67,65 @@ export function WebGLPhoto({ src, alt, className, tint = [0.243, 0.325, 0.278] }
         scene.add(mesh);
         trash.push(mesh.geometry, material);
 
-        let imageAspect = 1;
+        let sourceAspect = 1;
         const applyScale = () => {
           const containerAspect = Math.max(1, container.clientWidth) / Math.max(1, container.clientHeight);
           uniforms.uScale.value.set(
-            containerAspect > imageAspect ? 1 : containerAspect / imageAspect,
-            containerAspect > imageAspect ? imageAspect / containerAspect : 1
+            containerAspect > sourceAspect ? 1 : containerAspect / sourceAspect,
+            containerAspect > sourceAspect ? sourceAspect / containerAspect : 1
           );
           render();
         };
 
         const render = () => renderer.render(scene, camera);
 
-        new THREE.TextureLoader().load(src, (texture) => {
-          if (disposed) {
-            texture.dispose();
-            return;
-          }
-          texture.colorSpace = THREE.SRGBColorSpace;
-          texture.generateMipmaps = false;
-          texture.minFilter = THREE.LinearFilter;
-          texture.magFilter = THREE.LinearFilter;
-          imageAspect = texture.image.width / texture.image.height;
-          applyScale();
-          uniforms.uTexture.value = texture;
-          trash.push(texture);
-          render();
-        });
+        // La vidéo a besoin d'un rendu à chaque frame pour avancer ; une photo statique peut
+        // se contenter d'un rendu ponctuel une fois révélée (voir la boucle plus bas).
+        let videoEl: HTMLVideoElement | null = null;
+
+        const useImageTexture = () => {
+          new THREE.TextureLoader().load(src, (texture) => {
+            if (disposed) {
+              texture.dispose();
+              return;
+            }
+            texture.colorSpace = THREE.SRGBColorSpace;
+            texture.generateMipmaps = false;
+            texture.minFilter = THREE.LinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+            sourceAspect = texture.image.width / texture.image.height;
+            applyScale();
+            uniforms.uTexture.value = texture;
+            trash.push(texture);
+            render();
+          });
+        };
+
+        if (video) {
+          const el = document.createElement("video");
+          el.muted = true;
+          el.loop = true;
+          el.playsInline = true;
+          el.preload = "auto";
+          el.crossOrigin = "anonymous";
+          const onReady = () => {
+            if (disposed) return;
+            sourceAspect = el.videoWidth / el.videoHeight;
+            applyScale();
+            const texture = new THREE.VideoTexture(el);
+            texture.colorSpace = THREE.SRGBColorSpace;
+            uniforms.uTexture.value = texture;
+            trash.push(texture);
+            videoEl = el;
+            el.play().catch(() => undefined);
+            startTicking();
+          };
+          el.addEventListener("loadeddata", onReady, { once: true });
+          el.addEventListener("error", () => useImageTexture(), { once: true });
+          el.src = video;
+        } else {
+          useImageTexture();
+        }
 
         const resize = () => {
           const width = Math.max(1, container.clientWidth);
@@ -102,9 +138,7 @@ export function WebGLPhoto({ src, alt, className, tint = [0.243, 0.325, 0.278] }
         resizeObserver.observe(container);
         resize();
 
-        // Révélation déclenchée une fois, quand la photo entre dans le viewport : c'est le seul
-        // moment où l'on a besoin d'animer, donc la boucle s'arrête juste après (pas de rendu
-        // continu inutile — utile ici vu le nombre de photos WebGL sur une même page).
+        // Révélation déclenchée une fois, quand le visuel entre dans le viewport.
         let revealTarget = 0;
         const intersectionObserver = new IntersectionObserver(
           (entries) => {
@@ -126,7 +160,9 @@ export function WebGLPhoto({ src, alt, className, tint = [0.243, 0.325, 0.278] }
           last = now;
           uniforms.uReveal.value += (revealTarget - uniforms.uReveal.value) * Math.min(1, dt * 1.8);
           render();
-          if (Math.abs(revealTarget - uniforms.uReveal.value) > 0.002) {
+          // Une vidéo doit continuer à être rendue image par image ; une photo statique peut
+          // s'arrêter une fois la révélation stabilisée (moins de rendu inutile en arrière-plan).
+          if (videoEl || Math.abs(revealTarget - uniforms.uReveal.value) > 0.002) {
             raf = requestAnimationFrame(tick);
           } else {
             uniforms.uReveal.value = revealTarget;
@@ -143,6 +179,9 @@ export function WebGLPhoto({ src, alt, className, tint = [0.243, 0.325, 0.278] }
 
         const onVisibility = () => {
           last = performance.now();
+          if (!videoEl) return;
+          if (document.hidden) videoEl.pause();
+          else videoEl.play().catch(() => undefined);
         };
         document.addEventListener("visibilitychange", onVisibility);
 
@@ -152,6 +191,11 @@ export function WebGLPhoto({ src, alt, className, tint = [0.243, 0.325, 0.278] }
           resizeObserver.disconnect();
           intersectionObserver.disconnect();
           document.removeEventListener("visibilitychange", onVisibility);
+          if (videoEl) {
+            videoEl.pause();
+            videoEl.removeAttribute("src");
+            videoEl.load();
+          }
           for (const item of trash) item.dispose();
           renderer.dispose();
           renderer.forceContextLoss();
@@ -165,7 +209,7 @@ export function WebGLPhoto({ src, alt, className, tint = [0.243, 0.325, 0.278] }
       disposeScene?.();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [src]);
+  }, [src, video]);
 
   const showFallback = webglFailed || reducedMotion;
 
