@@ -5,6 +5,14 @@ import { motion } from "framer-motion";
 import { ctaClass } from "../components/ui/cta";
 import { useAuth } from "../store/AuthContext";
 
+const demoAccounts = [
+  { role: "Super Admin", description: "Gestion de la plateforme", email: "superadmin@cabinetpro.ma" },
+  { role: "Admin cabinet", description: "Cabinet Atlas (plan Pro)", email: "admin@cabinetpro.ma" },
+  { role: "Manager", description: "Cabinet Atlas", email: "manager@cabinetpro.ma" },
+  { role: "Employé", description: "Cabinet Atlas", email: "sara@cabinetpro.ma" }
+];
+const demoPassword = "password123";
+
 export function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -15,10 +23,14 @@ export function Login() {
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
+    await submitLogin(email, password);
+  }
+
+  async function submitLogin(loginEmail: string, loginPassword: string) {
     setError("");
     setIsSubmitting(true);
     try {
-      await login(email, password);
+      await login(loginEmail, loginPassword);
       navigate("/dashboard");
     } catch {
       setError("Email ou mot de passe incorrect.");
@@ -64,6 +76,28 @@ export function Login() {
               </Link>
             </p>
           </form>
+          <div className="border-t border-line bg-sage-50/40 p-7">
+            <h2 className="text-sm font-bold uppercase tracking-wide text-ink">Comptes de démonstration</h2>
+            <p className="mt-1 text-sm text-muted">Cliquez sur un profil pour vous connecter instantanément.</p>
+            <div className="mt-4 grid gap-2 sm:grid-cols-2">
+              {demoAccounts.map((account) => (
+                <button
+                  key={account.email}
+                  type="button"
+                  disabled={isSubmitting}
+                  onClick={() => {
+                    setEmail(account.email);
+                    setPassword(demoPassword);
+                    void submitLogin(account.email, demoPassword);
+                  }}
+                  className="rounded-xl border border-line bg-white px-3 py-2 text-left transition hover:border-sage-500 disabled:opacity-60"
+                >
+                  <span className="block text-sm font-bold text-ink">{account.role}</span>
+                  <span className="block text-xs text-muted">{account.description}</span>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </motion.div>
     </main>
