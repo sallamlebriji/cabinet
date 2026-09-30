@@ -4,6 +4,7 @@ import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom"
 import { AuthProvider } from "./store/AuthContext";
 import { PublicLayout } from "./layouts/PublicLayout";
 import { DashboardLayout } from "./layouts/DashboardLayout";
+import { AuthLayout } from "./layouts/AuthLayout";
 import { Home } from "./pages/Home";
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
@@ -22,7 +23,7 @@ type Role = "SUPER_ADMIN" | "ADMIN_TENANT" | "MANAGER" | "EMPLOYEE" | "CLIENT";
 function RequireAccess({ children, roles, module }: { children: React.ReactNode; roles: Role[]; module?: string }) {
   const { user, modules, isLoading } = useAuth();
 
-  if (isLoading) return <div className="grid min-h-screen place-items-center bg-[#f7f9fc] text-muted">Chargement...</div>;
+  if (isLoading) return <div className="grid min-h-[60vh] place-items-center text-sm text-muted">Chargement…</div>;
   if (!user) return <Navigate to="/login" replace />;
   if (!roles.includes(user.role)) return <Navigate to="/access-denied" replace />;
   if (user.role !== "SUPER_ADMIN" && module && !modules.includes(module)) return <Navigate to="/access-denied" replace />;
@@ -34,7 +35,12 @@ const router = createBrowserRouter([
   {
     element: <PublicLayout />,
     children: [
-      { path: "/", element: <Home /> },
+      { path: "/", element: <Home /> }
+    ]
+  },
+  {
+    element: <AuthLayout />,
+    children: [
       { path: "/login", element: <Login /> },
       { path: "/register", element: <Register /> }
     ]

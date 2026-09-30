@@ -114,6 +114,7 @@ export function Clients() {
   }
 
   async function removeClient(client: Client) {
+    if (!window.confirm(`Supprimer le client ${client.firstName} ${client.lastName} ?`)) return;
     await api.delete(`/clients/${client._id}`);
     if (selected?._id === client._id) fillForm(null);
     setMessage("Client supprimé.");
