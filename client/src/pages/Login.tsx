@@ -32,8 +32,12 @@ export function Login() {
     try {
       await login(loginEmail, loginPassword);
       navigate("/dashboard");
-    } catch {
-      setError("Email ou mot de passe incorrect.");
+    } catch (err) {
+      const status = (err as { response?: { status?: number } }).response?.status;
+      if (!status) setError("Serveur injoignable. Vérifiez que l'API est démarrée et que CLIENT_URL autorise cette adresse.");
+      else if (status === 401 || status === 400) setError("Email ou mot de passe incorrect.");
+      else if (status === 403) setError("Compte ou abonnement inactif.");
+      else setError("Erreur serveur. Réessayez dans un instant.");
     } finally {
       setIsSubmitting(false);
     }
