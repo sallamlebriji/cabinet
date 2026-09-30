@@ -13,12 +13,16 @@ for (const key of required) {
 export const env = {
   nodeEnv: process.env.NODE_ENV ?? "development",
   port: Number(process.env.PORT ?? 5000),
-  clientUrl: process.env.CLIENT_URL ?? "http://localhost:5173",
+  clientUrls: (process.env.CLIENT_URL ?? "http://localhost:5173")
+    .split(",")
+    .map((url) => url.trim().replace(/\/+$/, ""))
+    .filter(Boolean),
   mongoUri: process.env.MONGO_URI as string,
   jwtAccessSecret: process.env.JWT_ACCESS_SECRET as string,
   jwtRefreshSecret: process.env.JWT_REFRESH_SECRET as string,
   jwtAccessExpiresIn: process.env.JWT_ACCESS_EXPIRES_IN ?? "15m",
   jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN ?? "7d",
+  autoSeedDemo: process.env.AUTO_SEED_DEMO === "true",
   refreshCookieName: process.env.REFRESH_COOKIE_NAME ?? "refreshToken",
   uploadDriver: process.env.UPLOAD_DRIVER ?? "local",
   cloudinary: {

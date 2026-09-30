@@ -97,7 +97,8 @@ Les modèles Mongoose se trouvent dans `server/src/models`:
 3. Build command: `npm install && npm run build`.
 4. Start command: `npm start`.
 5. Ajoutez les variables d’environnement server depuis `.env.example`.
-6. Autorisez l’URL Vercel dans `CLIENT_URL`.
+6. Autorisez l’URL Vercel dans `CLIENT_URL` (plusieurs URL possibles, séparées par des virgules ; un `/` final est ignoré).
+7. Pour créer les comptes de démonstration directement dans la base de ce service, ajoutez `AUTO_SEED_DEMO=true`. Le seed s'exécute à chaque démarrage et remet les mots de passe de démo à jour ; retirez la variable pour désactiver.
 
 ## Déploiement Vercel
 
@@ -105,7 +106,7 @@ Les modèles Mongoose se trouvent dans `server/src/models`:
 2. Root directory: `client`.
 3. Build command: `npm run build`.
 4. Output directory: `dist`.
-5. Ajoutez `VITE_API_URL=https://votre-api-render.onrender.com/api/v1`.
+5. Ajoutez `VITE_API_URL=https://votre-api-render.onrender.com/api/v1`, puis redéployez (la variable est intégrée au build).
 
 ## Améliorations futures
 

@@ -18,7 +18,7 @@ const __dirname = path.dirname(__filename);
 export const app = express();
 
 app.use(helmet());
-app.use(cors({ origin: env.clientUrl, credentials: true }));
+app.use(cors({ origin: env.clientUrls, credentials: true }));
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 300 }));
 app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true }));
