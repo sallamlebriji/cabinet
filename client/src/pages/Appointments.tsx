@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { CalendarPlus, Clock, Plus, RefreshCw } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
+import { PageHeader } from "../components/ui/PageHeader";
+import { StatusBadge } from "../components/ui/StatusBadge";
 import { api } from "../services/api";
 import { useAuth } from "../store/AuthContext";
 
@@ -19,6 +21,7 @@ type Appointment = {
 type Tenant = { _id: string; name: string };
 
 const statuses: Appointment["status"][] = ["pending", "confirmed", "completed", "cancelled"];
+const statusLabels: Record<Appointment["status"], string> = { pending: "En attente", confirmed: "Confirmé", completed: "Terminé", cancelled: "Annulé" };
 
 export function Appointments() {
   const { user } = useAuth();
@@ -71,7 +74,7 @@ export function Appointments() {
     event.preventDefault();
     await api.post("/clients", { ...clientForm, tenantId: selectedTenant || undefined });
     setClientForm({ firstName: "", lastName: "", email: "" });
-    setMessage("Client ajoute.");
+    setMessage("Client ajouté.");
     await load();
   }
 
@@ -79,7 +82,7 @@ export function Appointments() {
     event.preventDefault();
     await api.post("/services", { ...serviceForm, tenantId: selectedTenant || undefined });
     setServiceForm({ name: "", duration: 30, price: 300 });
-    setMessage("Service ajoute.");
+    setMessage("Service ajouté.");
     await load();
   }
 
@@ -90,7 +93,7 @@ export function Appointments() {
     const endAt = new Date(startAt.getTime() + (service?.duration ?? 30) * 60_000);
     await api.post("/appointments", { client: form.client, service: form.service, startAt, endAt, notes: form.notes, tenantId: selectedTenant || undefined });
     setForm((current) => ({ ...current, notes: "" }));
-    setMessage("Rendez-vous cree.");
+    setMessage("Rendez-vous créé.");
     await load();
   }
 
@@ -101,24 +104,24 @@ export function Appointments() {
 
   return (
     <div className="space-y-6 p-4 sm:p-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-3xl font-bold text-ink">Rendez-vous</h2>
-          <p className="mt-2 text-muted">Creation, planning et suivi des statuts branches sur l'API.</p>
-        </div>
-        <Button type="button" onClick={() => void load()}>
-          <RefreshCw size={18} /> Actualiser
-        </Button>
-      </div>
+      <PageHeader
+        title="Rendez-vous"
+        description="Planification et suivi des rendez-vous par statut."
+        actions={
+          <Button type="button" variant="secondary" onClick={() => void load()}>
+            <RefreshCw size={16} /> Actualiser
+          </Button>
+        }
+      />
 
-      {message && <p className="rounded-lg bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700">{message}</p>}
+      {message && <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">{message}</p>}
 
       {user?.role === "SUPER_ADMIN" && (
         <Card className="p-5">
           <label className="block max-w-xl">
-            <span className="text-sm font-semibold text-ink">Tenant a administrer</span>
-            <select className="mt-2 h-11 w-full rounded-lg border border-line px-3 outline-none" value={selectedTenant} onChange={(event) => setSelectedTenant(event.target.value)}>
-              <option value="">Selectionner un tenant</option>
+            <span className="app-label">Cabinet à administrer</span>
+            <select className="app-input" value={selectedTenant} onChange={(event) => setSelectedTenant(event.target.value)}>
+              <option value="">Sélectionner un cabinet</option>
               {tenants.map((tenant) => (
                 <option key={tenant._id} value={tenant._id}>
                   {tenant.name}
@@ -131,37 +134,37 @@ export function Appointments() {
 
       <div className="grid gap-5 xl:grid-cols-3">
         <Card className="p-5">
-          <h3 className="font-bold text-ink">Nouveau client</h3>
+          <h3 className="text-sm font-semibold text-ink">Nouveau client</h3>
           <form onSubmit={createClient} className="mt-4 space-y-3">
-            <input required className="h-11 w-full rounded-lg border border-line px-3 outline-none" placeholder="Prenom" value={clientForm.firstName} onChange={(event) => setClientForm({ ...clientForm, firstName: event.target.value })} />
-            <input required className="h-11 w-full rounded-lg border border-line px-3 outline-none" placeholder="Nom" value={clientForm.lastName} onChange={(event) => setClientForm({ ...clientForm, lastName: event.target.value })} />
-            <input className="h-11 w-full rounded-lg border border-line px-3 outline-none" placeholder="Email" value={clientForm.email} onChange={(event) => setClientForm({ ...clientForm, email: event.target.value })} />
+            <input required className="app-input" placeholder="Prénom" value={clientForm.firstName} onChange={(event) => setClientForm({ ...clientForm, firstName: event.target.value })} />
+            <input required className="app-input" placeholder="Nom" value={clientForm.lastName} onChange={(event) => setClientForm({ ...clientForm, lastName: event.target.value })} />
+            <input className="app-input" placeholder="Email" value={clientForm.email} onChange={(event) => setClientForm({ ...clientForm, email: event.target.value })} />
             <Button className="w-full" type="submit">
-              <Plus size={18} /> Ajouter client
+              <Plus size={16} /> Ajouter client
             </Button>
           </form>
         </Card>
 
         <Card className="p-5">
-          <h3 className="font-bold text-ink">Nouveau service</h3>
+          <h3 className="text-sm font-semibold text-ink">Nouveau service</h3>
           <form onSubmit={createService} className="mt-4 space-y-3">
-            <input required className="h-11 w-full rounded-lg border border-line px-3 outline-none" placeholder="Nom du service" value={serviceForm.name} onChange={(event) => setServiceForm({ ...serviceForm, name: event.target.value })} />
+            <input required className="app-input" placeholder="Nom du service" value={serviceForm.name} onChange={(event) => setServiceForm({ ...serviceForm, name: event.target.value })} />
             <div className="grid grid-cols-2 gap-3">
-              <input required min={5} className="h-11 rounded-lg border border-line px-3 outline-none" type="number" value={serviceForm.duration} onChange={(event) => setServiceForm({ ...serviceForm, duration: Number(event.target.value) })} />
-              <input required min={0} className="h-11 rounded-lg border border-line px-3 outline-none" type="number" value={serviceForm.price} onChange={(event) => setServiceForm({ ...serviceForm, price: Number(event.target.value) })} />
+              <input required min={5} className="app-input" type="number" value={serviceForm.duration} onChange={(event) => setServiceForm({ ...serviceForm, duration: Number(event.target.value) })} />
+              <input required min={0} className="app-input" type="number" value={serviceForm.price} onChange={(event) => setServiceForm({ ...serviceForm, price: Number(event.target.value) })} />
             </div>
             <Button className="w-full" type="submit">
-              <Plus size={18} /> Ajouter service
+              <Plus size={16} /> Ajouter service
             </Button>
           </form>
         </Card>
 
         <Card className="p-5">
-          <h3 className="flex items-center gap-2 font-bold text-ink">
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-ink">
             <CalendarPlus size={19} /> Nouveau rendez-vous
           </h3>
           <form onSubmit={createAppointment} className="mt-4 space-y-3">
-            <select required disabled={!clients.length} className="h-11 w-full rounded-lg border border-line px-3 outline-none" value={form.client} onChange={(event) => setForm({ ...form, client: event.target.value })}>
+            <select required disabled={!clients.length} className="app-input" value={form.client} onChange={(event) => setForm({ ...form, client: event.target.value })}>
               <option value="">Client</option>
               {clients.map((client) => (
                 <option key={client._id} value={client._id}>
@@ -169,7 +172,7 @@ export function Appointments() {
                 </option>
               ))}
             </select>
-            <select required disabled={!services.length} className="h-11 w-full rounded-lg border border-line px-3 outline-none" value={form.service} onChange={(event) => setForm({ ...form, service: event.target.value })}>
+            <select required disabled={!services.length} className="app-input" value={form.service} onChange={(event) => setForm({ ...form, service: event.target.value })}>
               <option value="">Service</option>
               {services.map((service) => (
                 <option key={service._id} value={service._id}>
@@ -178,12 +181,12 @@ export function Appointments() {
               ))}
             </select>
             <div className="grid grid-cols-2 gap-3">
-              <input required className="h-11 rounded-lg border border-line px-3 outline-none" type="date" value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} />
-              <input required className="h-11 rounded-lg border border-line px-3 outline-none" type="time" value={form.time} onChange={(event) => setForm({ ...form, time: event.target.value })} />
+              <input required className="app-input" type="date" value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} />
+              <input required className="app-input" type="time" value={form.time} onChange={(event) => setForm({ ...form, time: event.target.value })} />
             </div>
-            <textarea className="min-h-20 w-full rounded-lg border border-line p-3 outline-none" placeholder="Notes" value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} />
+            <textarea className="app-input" placeholder="Notes" value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} />
             <Button className="w-full" type="submit" disabled={!canCreateAppointment}>
-              <Clock size={18} /> Planifier
+              <Clock size={16} /> Planifier
             </Button>
           </form>
         </Card>
@@ -192,24 +195,27 @@ export function Appointments() {
       <div className="grid gap-5 lg:grid-cols-4">
         {statuses.map((status) => (
           <Card key={status} className="p-5">
-            <h3 className="capitalize font-bold text-ink">{status}</h3>
+            <div className="flex items-center justify-between">
+              <StatusBadge status={status} />
+              <span className="app-num text-xs font-semibold text-muted">{appointments.filter((item) => item.status === status).length}</span>
+            </div>
             <div className="mt-4 space-y-3">
               {appointments.filter((item) => item.status === status).map((item) => (
-                <div key={item._id} className="rounded-lg border border-line p-3">
-                  <p className="font-semibold text-ink">
+                <div key={item._id} className="rounded-lg border border-hairline bg-slate-50/50 p-3">
+                  <p className="text-sm font-semibold text-ink">
                     {item.client?.firstName} {item.client?.lastName}
                   </p>
-                  <p className="text-sm text-muted">{item.service?.name || "Service"} - {new Date(item.startAt).toLocaleString()}</p>
-                  <select className="mt-3 h-9 w-full rounded-lg border border-line px-2 text-sm outline-none" value={item.status} onChange={(event) => void changeStatus(item._id, event.target.value as Appointment["status"])}>
+                  <p className="mt-0.5 text-xs text-muted">{item.service?.name || "Service"} · {new Date(item.startAt).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })}</p>
+                  <select className="app-input mt-3 h-9" value={item.status} onChange={(event) => void changeStatus(item._id, event.target.value as Appointment["status"])}>
                     {statuses.map((nextStatus) => (
                       <option key={nextStatus} value={nextStatus}>
-                        {nextStatus}
+                        {statusLabels[nextStatus]}
                       </option>
                     ))}
                   </select>
                 </div>
               ))}
-              {!appointments.some((item) => item.status === status) && <p className="text-sm text-muted">Aucun rendez-vous.</p>}
+              {!appointments.some((item) => item.status === status) && <p className="py-4 text-center text-xs text-muted">Aucun rendez-vous</p>}
             </div>
           </Card>
         ))}

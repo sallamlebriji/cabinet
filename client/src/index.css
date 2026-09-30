@@ -65,8 +65,8 @@ body {
   input:focus,
   select:focus,
   textarea:focus {
-    border-color: #0e5f68 !important;
-    box-shadow: 0 0 0 4px rgba(14, 95, 104, 0.1);
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
   }
 }
 
@@ -285,5 +285,42 @@ body {
   .float-y,
   .logo-cube {
     animation: none;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Espace SaaS (dashboard) : interface sobre, dense et lisible.
+   ------------------------------------------------------------------ */
+
+@layer components {
+  .app-label {
+    @apply mb-1.5 block text-xs font-semibold text-ink/75;
+  }
+
+  .app-input {
+    @apply h-10 w-full rounded-lg border border-hairline bg-white px-3 text-sm text-ink outline-none placeholder:text-muted/70;
+  }
+
+  textarea.app-input {
+    @apply h-auto min-h-24 py-2.5;
+  }
+
+  .app-num {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+
+  .app-scroll::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .app-scroll::-webkit-scrollbar-thumb {
+    background: #d5dbe4;
+    border-radius: 999px;
+  }
+
+  .skeleton {
+    @apply animate-pulse rounded-md bg-slate-200/70;
   }
 }

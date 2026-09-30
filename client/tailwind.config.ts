@@ -14,6 +14,9 @@ export default {
         muted: "#66716f",
         line: "#e5ded0",
         ivory: "#fbfaf7",
+        canvas: "#f5f7fa",
+        hairline: "#e4e8ee",
+        sidebar: "#0c1322",
         cream: "#f8f5ef",
         graphite: "#263238",
         // Historique : encore utilisés par Button/Card/Badge dans l'espace cabinet (dashboard).
@@ -71,6 +74,8 @@ export default {
         }
       },
       boxShadow: {
+        card: "0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.05)",
+        pop: "0 12px 32px -12px rgba(15, 23, 42, 0.22)",
         premium: "0 28px 80px rgba(16, 25, 35, 0.12)",
         soft: "0 14px 34px rgba(16, 25, 35, 0.07)",
         glow: "0 20px 60px rgba(14, 95, 104, 0.18)",
