@@ -1,44 +1,32 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { cn } from "../../utils/cn";
 
 type MediaProps = {
-  /** Image affichée directement, et pendant que la vidéo (si fournie) n'est pas encore prête. */
+  /** Image affichée si aucune vidéo n'est fournie, ou si la vidéo échoue à charger. */
   src: string;
   alt: string;
   className?: string;
-  /** Optionnelle : si elle charge vraiment, une vidéo en boucle remplace la photo. */
+  /** Optionnelle : remplace la photo dès le premier rendu — jamais de flash de la photo avant. */
   video?: string;
 };
 
 /**
- * Photo (ou vidéo) simple, nette, sans effet superposé. Si `video` est fourni, on vérifie
- * d'abord son vrai Content-Type avant de l'utiliser : un serveur de dev en mode SPA (Vite)
- * répond 200 avec la page HTML pour une URL absente, y compris une vidéo manquante — sans ce
- * contrôle, un <video> peut rester bloqué sur un fichier qui n'existe pas. Repli silencieux sur
- * la photo si la vidéo est absente ou invalide.
+ * Photo (ou vidéo) simple, nette, sans effet superposé. Quand `video` est fourni, seule la
+ * vidéo est montée (pas de repli visible tant qu'elle n'a pas échoué) : un serveur de dev en
+ * mode SPA (Vite) répond 200 avec la page HTML pour un fichier manquant, ce que le lecteur ne
+ * sait pas décoder — l'événement `error` du <video> suffit à détecter aussi bien ce cas qu'un
+ * vrai fichier absent, sans requête séparée.
  */
 export function Media({ src, alt, className, video }: MediaProps) {
-  const [videoReady, setVideoReady] = useState(false);
-
-  useEffect(() => {
-    if (!video) return;
-    let cancelled = false;
-    fetch(video, { method: "HEAD" })
-      .then((response) => {
-        const type = response.headers.get("content-type") ?? "";
-        if (!cancelled && response.ok && type.startsWith("video/")) setVideoReady(true);
-      })
-      .catch(() => undefined);
-    return () => {
-      cancelled = true;
-    };
-  }, [video]);
+  const [videoFailed, setVideoFailed] = useState(false);
+  const showVideo = Boolean(video) && !videoFailed;
 
   return (
-    <div className={cn("relative overflow-hidden", className)}>
-      <img src={src} alt={alt} className="h-full w-full object-cover" loading="lazy" />
-      {videoReady && video && (
-        <video className="absolute inset-0 h-full w-full object-cover" src={video} autoPlay muted loop playsInline aria-hidden />
+    <div className={cn("relative overflow-hidden bg-cream", className)}>
+      {showVideo ? (
+        <video className="h-full w-full object-cover" src={video} autoPlay muted loop playsInline aria-label={alt} onError={() => setVideoFailed(true)} />
+      ) : (
+        <img src={src} alt={alt} className="h-full w-full object-cover" loading="lazy" />
       )}
     </div>
   );
