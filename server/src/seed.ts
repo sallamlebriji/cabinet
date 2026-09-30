@@ -10,7 +10,12 @@ import { Subscription } from "./models/Subscription.js";
 import { Tenant } from "./models/Tenant.js";
 import { User, type UserRole } from "./models/User.js";
 
-const password = "password123";
+const password = process.env.DEMO_PASSWORD ?? "password123";
+
+if (process.env.NODE_ENV === "production" && process.env.ALLOW_DEMO_SEED !== "true") {
+  console.error("Seed de demonstration bloque en production. Definissez ALLOW_DEMO_SEED=true pour l'autoriser.");
+  process.exit(1);
+}
 
 async function upsertUser(data: {
   name: string;
@@ -26,6 +31,7 @@ async function upsertUser(data: {
     existing.tenant = data.tenant;
     existing.phone = data.phone;
     existing.isActive = true;
+    existing.password = password;
     await existing.save();
     return existing;
   }

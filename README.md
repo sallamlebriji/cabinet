@@ -39,6 +39,23 @@ npm run dev
 - Backend: `http://localhost:5000`
 - Health check: `http://localhost:5000/health`
 
+## Comptes de démonstration
+
+Le seeder crée (ou remet à jour) les cabinets Atlas et Ocean et les comptes ci-dessous, avec clients, services, rendez-vous et factures d'exemple. Il est relançable sans risque.
+
+```bash
+npm run seed:demo
+```
+
+| Rôle | Email |
+| --- | --- |
+| Super Admin | superadmin@cabinetpro.ma |
+| Admin cabinet | admin@cabinetpro.ma |
+| Manager | manager@cabinetpro.ma |
+| Employé | sara@cabinetpro.ma |
+
+Mot de passe par défaut : `password123` (modifiable via `DEMO_PASSWORD`). Le seeder cible la base de `MONGO_URI`. En production (`NODE_ENV=production`), il refuse de s'exécuter sauf si `ALLOW_DEMO_SEED=true`.
+
 ## Build
 
 ```bash
