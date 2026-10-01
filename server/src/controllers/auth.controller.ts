@@ -9,6 +9,7 @@ import { Tenant } from "../models/Tenant.js";
 import { User, type IUser } from "../models/User.js";
 import { ApiError } from "../utils/apiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { effectiveModules } from "../utils/permissions.js";
 import { signAccessToken, signRefreshToken } from "../utils/tokens.js";
 
 function slugify(value: string) {
@@ -64,7 +65,7 @@ async function authPayload(user: IUser | null) {
     user,
     tenant,
     subscription,
-    modules: subscription?.enabledModules ?? []
+    modules: effectiveModules(user.role, tenant, subscription)
   };
 }
 
@@ -147,7 +148,7 @@ export const logout = asyncHandler(async (req, res) => {
 });
 
 export const me = asyncHandler(async (req, res) => {
-  res.json({ success: true, user: req.user, tenant: req.tenant ?? null, subscription: req.subscription ?? null, modules: req.subscription?.enabledModules ?? [] });
+  res.json({ success: true, user: req.user, tenant: req.tenant ?? null, subscription: req.subscription ?? null, modules: effectiveModules(req.user!.role, req.tenant, req.subscription) });
 });
 
 export const forgotPassword = asyncHandler(async (_req, res) => {

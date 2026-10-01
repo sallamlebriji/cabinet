@@ -5,6 +5,7 @@ import { Appointment } from "../models/Appointment.js";
 import { Client } from "../models/Client.js";
 import { DocumentFile } from "../models/Document.js";
 import { Invoice } from "../models/Invoice.js";
+import { Quote } from "../models/Quote.js";
 import { Service } from "../models/Service.js";
 import { Subscription } from "../models/Subscription.js";
 import { User } from "../models/User.js";
@@ -49,6 +50,7 @@ const itemCounters = [
   (tenant: string) => Service.countDocuments({ tenant }),
   (tenant: string) => Appointment.countDocuments({ tenant }),
   (tenant: string) => Invoice.countDocuments({ tenant }),
+  (tenant: string) => Quote.countDocuments({ tenant }),
   (tenant: string) => DocumentFile.countDocuments({ tenant })
 ];
 

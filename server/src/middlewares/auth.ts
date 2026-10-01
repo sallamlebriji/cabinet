@@ -2,12 +2,12 @@ import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import { StatusCodes } from "http-status-codes";
 import type { NextFunction, Request, Response } from "express";
-import { modulePermissions } from "../config/modules.js";
 import { env } from "../config/env.js";
 import { Subscription } from "../models/Subscription.js";
 import { Tenant } from "../models/Tenant.js";
 import { User, type UserRole } from "../models/User.js";
 import { ApiError } from "../utils/apiError.js";
+import { effectiveModules } from "../utils/permissions.js";
 
 type AccessPayload = { sub: string; userId?: string; role: UserRole; tenantId?: string };
 
@@ -83,19 +83,10 @@ export async function checkTenantActive(req: Request, _res: Response, next: Next
 export function requireModule(moduleName: string) {
   return (req: Request, _res: Response, next: NextFunction) => {
     const role = req.user?.role;
-    if (!role || !modulePermissions[moduleName]?.includes(role)) {
-      return next(new ApiError(StatusCodes.FORBIDDEN, "Module non autorise pour ce role"));
+    if (!role) return next(new ApiError(StatusCodes.UNAUTHORIZED, "Authentification requise"));
+    if (!effectiveModules(role, req.tenant, req.subscription).includes(moduleName)) {
+      return next(new ApiError(StatusCodes.FORBIDDEN, "Module non autorise pour ce role ou ce cabinet"));
     }
-
-    if (role === "SUPER_ADMIN") return next();
-
-    const modules = req.tenant?.modules as Map<string, boolean> | Record<string, boolean> | undefined;
-    const enabled = modules instanceof Map ? modules.get(moduleName) : modules?.[moduleName];
-    const subscriptionAllowsModule = req.subscription?.enabledModules.includes(moduleName) ?? false;
-    if (enabled === false || !subscriptionAllowsModule) {
-      return next(new ApiError(StatusCodes.FORBIDDEN, "Module desactive pour ce tenant"));
-    }
-
     next();
   };
 }

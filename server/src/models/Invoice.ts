@@ -14,6 +14,8 @@ export interface IInvoice extends Document {
   paidAmount: number;
   status: InvoiceStatus;
   dueDate?: Date;
+  notes?: string;
+  createdAt: Date;
 }
 
 const invoiceSchema = new Schema<IInvoice>(
@@ -34,9 +36,12 @@ const invoiceSchema = new Schema<IInvoice>(
     total: { type: Number, required: true },
     paidAmount: { type: Number, default: 0 },
     status: { type: String, enum: ["paid", "unpaid", "partial"], default: "unpaid" },
-    dueDate: Date
+    dueDate: Date,
+    notes: String
   },
   { timestamps: true }
 );
+
+invoiceSchema.index({ tenant: 1, createdAt: -1 });
 
 export const Invoice: Model<IInvoice> = mongoose.model<IInvoice>("Invoice", invoiceSchema);

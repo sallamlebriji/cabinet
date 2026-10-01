@@ -13,6 +13,7 @@ export interface ITenant extends Document {
   isActive: boolean;
   plan: TenantPlan;
   modules: Record<string, boolean>;
+  roleModules?: Record<string, string[]>;
 }
 
 const tenantSchema = new Schema<ITenant>(
@@ -26,6 +27,7 @@ const tenantSchema = new Schema<ITenant>(
     primaryColor: { type: String, default: "#2563eb" },
     isActive: { type: Boolean, default: true },
     plan: { type: String, enum: ["FREE", "STARTER", "PRO", "ENTERPRISE"], default: "FREE" },
+    roleModules: { type: Schema.Types.Mixed },
     modules: {
       type: Map,
       of: Boolean,

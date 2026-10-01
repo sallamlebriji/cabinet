@@ -7,6 +7,7 @@ export default {
       fontFamily: {
         sans: ["Inter", "ui-sans-serif", "system-ui"],
         serif: ["Playfair Display", "Georgia", "serif"],
+        heading: ["Fraunces", "Georgia", "serif"],
         display: ["Instrument Serif", "Playfair Display", "Georgia", "serif"]
       },
       colors: {
@@ -17,6 +18,7 @@ export default {
         canvas: "#f5f7fa",
         hairline: "#e4e8ee",
         sidebar: "#0c1322",
+        navy: "#12264A",
         cream: "#f8f5ef",
         graphite: "#263238",
         // Historique : encore utilisés par Button/Card/Badge dans l'espace cabinet (dashboard).

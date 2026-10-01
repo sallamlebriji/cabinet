@@ -9,6 +9,11 @@ const tones: Record<string, { label: string; className: string }> = {
   partial: { label: "Partielle", className: "bg-amber-50 text-amber-700 ring-amber-200" },
   unpaid: { label: "Impayée", className: "bg-red-50 text-red-700 ring-red-200" },
   active: { label: "Actif", className: "bg-emerald-50 text-emerald-700 ring-emerald-200" },
+  draft: { label: "Brouillon", className: "bg-slate-100 text-slate-600 ring-slate-200" },
+  sent: { label: "Envoyé", className: "bg-sage-50 text-sage-700 ring-sage-200" },
+  accepted: { label: "Accepté", className: "bg-emerald-50 text-emerald-700 ring-emerald-200" },
+  refused: { label: "Refusé", className: "bg-red-50 text-red-700 ring-red-200" },
+  inactive: { label: "Inactif", className: "bg-slate-100 text-slate-600 ring-slate-200" },
   suspended: { label: "Suspendu", className: "bg-red-50 text-red-700 ring-red-200" }
 };
 

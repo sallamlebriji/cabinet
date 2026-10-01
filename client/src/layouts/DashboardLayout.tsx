@@ -1,50 +1,83 @@
-import { useEffect, useState } from "react";
-import { Bell, Building2, CalendarDays, FileText, LayoutDashboard, LogOut, Menu, Settings, Stethoscope, Users, X } from "lucide-react";
-import { NavLink, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import {
+  Building2,
+  CalendarDays,
+  ChevronDown,
+  CreditCard,
+  FileText,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  Receipt,
+  Search,
+  Settings,
+  Stethoscope,
+  UserCog,
+  Users,
+  X,
+  type LucideIcon
+} from "lucide-react";
+import { Link, NavLink, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Avatar } from "../components/ui/Bits";
+import { fullName } from "../lib/format";
+import { roleLabels, type Client } from "../lib/types";
+import { api, getScopeTenant, setScopeTenant } from "../services/api";
 import { useAuth } from "../store/AuthContext";
 
-const nav = [
-  { to: "/dashboard", label: "Tableau de bord", icon: LayoutDashboard, module: "dashboard", roles: ["SUPER_ADMIN", "ADMIN_TENANT", "MANAGER"] },
-  { to: "/clients", label: "Clients", icon: Users, module: "customers", roles: ["SUPER_ADMIN", "ADMIN_TENANT", "MANAGER", "EMPLOYEE"] },
-  { to: "/appointments", label: "Rendez-vous", icon: CalendarDays, module: "appointments", roles: ["SUPER_ADMIN", "ADMIN_TENANT", "MANAGER", "EMPLOYEE"] },
-  { to: "/invoices", label: "Facturation", icon: FileText, module: "billing", roles: ["SUPER_ADMIN", "ADMIN_TENANT"] },
-  { to: "/settings", label: "Paramètres", icon: Settings, module: "settings", roles: ["SUPER_ADMIN", "ADMIN_TENANT"] }
+type NavItem = { to: string; label: string; icon: LucideIcon; module: string };
+
+const groups: { title: string; items: NavItem[] }[] = [
+  { title: "Pilotage", items: [{ to: "/dashboard", label: "Tableau de bord", icon: LayoutDashboard, module: "dashboard" }] },
+  {
+    title: "Patientèle",
+    items: [
+      { to: "/clients", label: "Clients", icon: Users, module: "customers" },
+      { to: "/agenda", label: "Agenda", icon: CalendarDays, module: "appointments" }
+    ]
+  },
+  {
+    title: "Finance",
+    items: [
+      { to: "/quotes", label: "Devis", icon: FileText, module: "billing" },
+      { to: "/invoices", label: "Facturation", icon: Receipt, module: "billing" },
+      { to: "/payments", label: "Paiements", icon: CreditCard, module: "billing" }
+    ]
+  },
+  {
+    title: "Administration",
+    items: [
+      { to: "/staff", label: "Personnel", icon: UserCog, module: "users" },
+      { to: "/settings", label: "Paramètres", icon: Settings, module: "settings" }
+    ]
+  }
 ];
 
-const roleLabels: Record<string, string> = {
-  SUPER_ADMIN: "Super admin",
-  ADMIN_TENANT: "Administrateur",
-  MANAGER: "Manager",
-  EMPLOYEE: "Employé",
-  CLIENT: "Client"
-};
-
-const pageTitles: Record<string, string> = {
-  "/dashboard": "Tableau de bord",
-  "/clients": "Clients",
-  "/appointments": "Rendez-vous",
-  "/invoices": "Facturation",
-  "/settings": "Paramètres",
-  "/super-admin": "Cabinets",
-  "/access-denied": "Accès refusé"
-};
-
-function initials(name: string) {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("");
-}
+type TenantOption = { _id: string; name: string };
 
 export function DashboardLayout() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { user, tenant, modules, isLoading, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [tenants, setTenants] = useState<TenantOption[]>([]);
+  const [scope, setScope] = useState(getScopeTenant());
+  const isSuperAdmin = user?.role === "SUPER_ADMIN";
 
   useEffect(() => setMenuOpen(false), [pathname]);
+
+  useEffect(() => {
+    if (!isSuperAdmin) return;
+    api.get("/tenants").then(({ data }) => {
+      const items: TenantOption[] = data.items;
+      setTenants(items);
+      if (!items.some((item) => item._id === getScopeTenant())) changeScope(items[0]?._id ?? "");
+    });
+  }, [isSuperAdmin]);
+
+  function changeScope(id: string) {
+    setScopeTenant(id);
+    setScope(id);
+  }
 
   if (isLoading) {
     return (
@@ -58,9 +91,12 @@ export function DashboardLayout() {
   }
   if (!user) return <Navigate to="/login" replace />;
 
-  const allowedNav = nav.filter((item) => item.roles.includes(user.role) && (user.role === "SUPER_ADMIN" || modules.includes(item.module)));
-  const links = user.role === "SUPER_ADMIN" ? [...allowedNav, { to: "/super-admin", label: "Cabinets", icon: Building2, module: "users", roles: ["SUPER_ADMIN"] }] : allowedNav;
-  const workspace = user.role === "SUPER_ADMIN" ? "Console plateforme" : tenant?.name ?? "Mon cabinet";
+  const visibleGroups = groups
+    .map((group) => ({ ...group, items: group.items.filter((item) => modules.includes(item.module)) }))
+    .filter((group) => group.items.length);
+  if (isSuperAdmin) visibleGroups.push({ title: "Plateforme", items: [{ to: "/super-admin", label: "Cabinets", icon: Building2, module: "users" }] });
+
+  const workspace = isSuperAdmin ? tenants.find((item) => item._id === scope)?.name ?? "Plateforme" : tenant?.name ?? "Mon cabinet";
 
   async function handleLogout() {
     await logout();
@@ -69,47 +105,46 @@ export function DashboardLayout() {
 
   const sidebar = (
     <div className="flex h-full flex-col">
-      <div className="flex h-16 items-center gap-3 px-5">
-        <div className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-to-br from-sage-500 to-sage-700 text-white shadow-sm">
-          <Stethoscope size={18} />
-        </div>
-        <div className="leading-tight">
-          <p className="text-sm font-semibold text-white">Cabinet Pro</p>
-          <p className="max-w-[10rem] truncate text-[11px] text-white/45">{workspace}</p>
-        </div>
-      </div>
+      <Link to="/app" className="flex h-16 items-center gap-2.5 px-5">
+        <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-gradient-to-br from-navy to-sage-600 text-white shadow-[0_4px_10px_rgba(37,99,235,0.25)]">
+          <Stethoscope size={16} />
+        </span>
+        <span className="leading-none">
+          <span className="block font-heading text-[21px] font-medium tracking-tight text-navy">Cabinet Pro</span>
+          <span className="mt-0.5 block text-[10px] font-semibold uppercase tracking-[0.14em] text-[#B89457]">Practice OS</span>
+        </span>
+      </Link>
 
-      <nav className="mt-4 flex-1 space-y-1 px-3">
-        <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/35">Navigation</p>
-        {links.map(({ to, label, icon: Icon }) => (
-          <NavLink
-            key={to}
-            to={to}
-            className={({ isActive }) =>
-              `group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
-                isActive ? "bg-white/10 text-white" : "text-white/60 hover:bg-white/5 hover:text-white"
-              }`
-            }
-          >
-            {({ isActive }) => (
-              <>
-                {isActive && <span className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-sage-300" />}
-                <Icon size={18} className={isActive ? "text-sage-300" : "text-white/45 group-hover:text-white/70"} />
+      <nav className="app-scroll flex-1 overflow-y-auto px-3 pb-4">
+        {visibleGroups.map((group) => (
+          <div key={group.title}>
+            <p className="px-2.5 pb-1.5 pt-4 text-[10.5px] font-semibold uppercase tracking-[0.12em] text-slate-400">{group.title}</p>
+            {group.items.map(({ to, label, icon: Icon }) => (
+              <NavLink
+                key={to}
+                to={to}
+                className={({ isActive }) =>
+                  `mb-0.5 flex items-center gap-2.5 rounded-[9px] px-2.5 py-2 text-[13.5px] font-medium transition ${
+                    isActive ? "bg-sage-50 text-sage-700" : "text-slate-600 hover:bg-slate-100 hover:text-ink"
+                  }`
+                }
+              >
+                <Icon size={17} />
                 {label}
-              </>
-            )}
-          </NavLink>
+              </NavLink>
+            ))}
+          </div>
         ))}
       </nav>
 
-      <div className="m-3 rounded-xl border border-white/10 bg-white/5 p-3">
-        <div className="flex items-center gap-3">
-          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-sage-600 text-xs font-semibold text-white">{initials(user.name)}</div>
+      <div className="border-t border-hairline p-3">
+        <div className="flex items-center gap-2.5 rounded-[10px] px-2 py-1.5">
+          <Avatar name={user.name} />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-white">{user.name}</p>
-            <p className="truncate text-[11px] text-white/45">{roleLabels[user.role] ?? user.role}</p>
+            <p className="truncate text-[13.5px] font-medium text-ink">{user.name}</p>
+            <p className="truncate text-[11.5px] text-muted">{roleLabels[user.role] ?? user.role}</p>
           </div>
-          <button onClick={handleLogout} className="grid h-8 w-8 place-items-center rounded-md text-white/50 transition hover:bg-white/10 hover:text-white" aria-label="Déconnexion" title="Déconnexion">
+          <button onClick={handleLogout} className="grid h-8 w-8 place-items-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-ink" aria-label="Déconnexion" title="Déconnexion">
             <LogOut size={16} />
           </button>
         </div>
@@ -118,14 +153,14 @@ export function DashboardLayout() {
   );
 
   return (
-    <div className="min-h-screen bg-canvas">
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 bg-sidebar lg:block">{sidebar}</aside>
+    <div className="min-h-screen bg-canvas text-[14px]">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[252px] border-r border-hairline bg-white lg:block">{sidebar}</aside>
 
       {menuOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-slate-900/50" onClick={() => setMenuOpen(false)} />
-          <aside className="absolute inset-y-0 left-0 w-72 bg-sidebar shadow-pop">
-            <button onClick={() => setMenuOpen(false)} className="absolute right-3 top-4 grid h-8 w-8 place-items-center rounded-md text-white/60 hover:bg-white/10" aria-label="Fermer le menu">
+          <div className="absolute inset-0 bg-navy/40" onClick={() => setMenuOpen(false)} />
+          <aside className="absolute inset-y-0 left-0 w-72 bg-white shadow-pop">
+            <button onClick={() => setMenuOpen(false)} className="absolute right-3 top-4 grid h-8 w-8 place-items-center rounded-md text-muted hover:bg-slate-100" aria-label="Fermer le menu">
               <X size={18} />
             </button>
             {sidebar}
@@ -133,32 +168,106 @@ export function DashboardLayout() {
         </div>
       )}
 
-      <div className="lg:pl-64">
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-hairline bg-white/80 px-4 backdrop-blur-xl sm:px-8">
-          <div className="flex items-center gap-3">
-            <button onClick={() => setMenuOpen(true)} className="grid h-9 w-9 place-items-center rounded-lg border border-hairline bg-white text-ink lg:hidden" aria-label="Ouvrir le menu">
-              <Menu size={18} />
-            </button>
-            <div>
-              <p className="text-[11px] font-medium text-muted">{workspace}</p>
-              <h1 className="text-sm font-semibold text-ink">{pageTitles[pathname] ?? "Espace cabinet"}</h1>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button className="relative grid h-9 w-9 place-items-center rounded-lg border border-hairline bg-white text-slate-600 transition hover:bg-slate-50" aria-label="Notifications">
-              <Bell size={17} />
-              <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-sage-600" />
-            </button>
-            <div className="hidden items-center gap-2 rounded-lg border border-hairline bg-white py-1 pl-1 pr-3 sm:flex">
-              <div className="grid h-7 w-7 place-items-center rounded-md bg-sage-600 text-[11px] font-semibold text-white">{initials(user.name)}</div>
-              <span className="text-sm font-medium text-ink">{user.name}</span>
-            </div>
-          </div>
+      <div className="lg:pl-[252px]">
+        <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-hairline bg-canvas/85 px-4 backdrop-blur-xl sm:px-7">
+          <button onClick={() => setMenuOpen(true)} className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] border border-hairline bg-white text-ink lg:hidden" aria-label="Ouvrir le menu">
+            <Menu size={18} />
+          </button>
+          {modules.includes("customers") ? <ClientSearch key={scope} /> : <div className="flex-1" />}
+          {isSuperAdmin ? (
+            <label className="relative hidden shrink-0 sm:block">
+              <span className="sr-only">Cabinet administré</span>
+              <Building2 size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+              <select value={scope} onChange={(event) => changeScope(event.target.value)} className="h-9 appearance-none rounded-[10px] border border-hairline bg-white pl-9 pr-8 text-[13px] font-medium text-ink outline-none">
+                {tenants.map((item) => (
+                  <option key={item._id} value={item._id}>
+                    {item.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown size={14} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-muted" />
+            </label>
+          ) : (
+            <span className="hidden shrink-0 items-center gap-2 rounded-[10px] border border-hairline bg-white px-3 py-2 text-[13px] font-medium text-ink sm:flex">
+              <Building2 size={15} className="text-muted" />
+              {workspace}
+            </span>
+          )}
         </header>
         <main className="mx-auto w-full max-w-[1400px]">
-          <Outlet />
+          <Outlet key={scope} />
         </main>
       </div>
+    </div>
+  );
+}
+
+function ClientSearch() {
+  const navigate = useNavigate();
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<Client[]>([]);
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const term = query.trim();
+    if (term.length < 2) {
+      setResults([]);
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      api
+        .get("/clients", { params: { q: term, limit: 6 } })
+        .then(({ data }) => setResults(data.items))
+        .catch(() => setResults([]));
+    }, 220);
+    return () => window.clearTimeout(timer);
+  }, [query]);
+
+  useEffect(() => {
+    const onClick = (event: MouseEvent) => !box.current?.contains(event.target as Node) && setOpen(false);
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
+
+  function go(client: Client) {
+    setOpen(false);
+    setQuery("");
+    navigate(`/clients/${client._id}`);
+  }
+
+  return (
+    <div ref={box} className="relative max-w-md flex-1">
+      <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+      <input
+        type="search"
+        aria-label="Rechercher un client"
+        placeholder="Rechercher un client…"
+        value={query}
+        onFocus={() => setOpen(true)}
+        onChange={(event) => {
+          setQuery(event.target.value);
+          setOpen(true);
+        }}
+        className="h-[38px] w-full rounded-[10px] border border-hairline bg-white pl-9 pr-3 text-sm outline-none placeholder:text-slate-400"
+      />
+      {open && query.trim().length >= 2 && (
+        <div className="absolute inset-x-0 top-11 z-50 rounded-xl border border-hairline bg-white p-1.5 shadow-pop">
+          {results.length ? (
+            results.map((client) => (
+              <button key={client._id} type="button" onClick={() => go(client)} className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition hover:bg-slate-50">
+                <Avatar name={fullName(client)} size="sm" />
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-medium text-ink">{fullName(client)}</span>
+                  <span className="block truncate text-xs text-muted">{client.phone || client.email || "—"}</span>
+                </span>
+              </button>
+            ))
+          ) : (
+            <p className="px-3 py-3 text-sm text-muted">Aucun client trouvé.</p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

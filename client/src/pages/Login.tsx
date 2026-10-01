@@ -41,7 +41,7 @@ export function Login() {
     setIsSubmitting(true);
     try {
       await login(loginEmail, loginPassword);
-      navigate("/dashboard");
+      navigate("/app");
     } catch (err) {
       const status = (err as { response?: { status?: number } }).response?.status;
       if (!status) setError("Serveur injoignable. Vérifiez que l'API est démarrée et que CLIENT_URL autorise cette adresse.");

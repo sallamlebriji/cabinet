@@ -1,4 +1,5 @@
 import { StatusCodes } from "http-status-codes";
+import { Client } from "../models/Client.js";
 import { DocumentFile } from "../models/Document.js";
 import { ApiError } from "../utils/apiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -10,15 +11,18 @@ export const listDocuments = asyncHandler(async (req, res) => {
 });
 
 export const uploadDocument = asyncHandler(async (req, res) => {
-  if (!req.file) throw new ApiError(StatusCodes.BAD_REQUEST, "Fichier manquant");
+  if (!req.file) throw new ApiError(StatusCodes.BAD_REQUEST, "Fichier manquant ou format non accepté");
   const tenant = await assertTenantLimit(req, "items");
+  if (req.body.client && !(await Client.exists({ _id: String(req.body.client), tenant }))) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Client introuvable dans ce cabinet");
+  }
   const document = await DocumentFile.create({
     title: req.body.title ?? req.file.originalname,
     tenant,
     fileUrl: `/uploads/${req.file.filename}`,
     fileType: req.file.mimetype,
     size: req.file.size,
-    client: req.body.client,
+    client: req.body.client || undefined,
     uploadedBy: req.user!.id
   });
   res.status(StatusCodes.CREATED).json({ success: true, document });

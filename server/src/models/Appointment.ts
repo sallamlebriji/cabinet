@@ -12,6 +12,7 @@ export interface IAppointment extends Document {
   endAt: Date;
   status: AppointmentStatus;
   notes?: string;
+  source: "staff" | "online";
 }
 
 const appointmentSchema = new Schema<IAppointment>(
@@ -28,11 +29,13 @@ const appointmentSchema = new Schema<IAppointment>(
       enum: ["pending", "confirmed", "completed", "cancelled"],
       default: "pending"
     },
-    notes: String
+    notes: String,
+    source: { type: String, enum: ["staff", "online"], default: "staff" }
   },
   { timestamps: true }
 );
 
 appointmentSchema.index({ tenant: 1, startAt: 1, status: 1 });
+appointmentSchema.index({ tenant: 1, client: 1 });
 
 export const Appointment: Model<IAppointment> = mongoose.model<IAppointment>("Appointment", appointmentSchema);

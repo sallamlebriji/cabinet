@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { api } from "../services/api";
+import { api, setScopeTenant } from "../services/api";
 
 type User = {
   _id: string;
@@ -44,6 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   function applySession(data: { user: User; tenant?: Tenant | null; subscription?: Subscription | null; modules?: string[] }) {
+    if (data.user.role !== "SUPER_ADMIN") setScopeTenant("");
     setUser(data.user);
     setTenant(data.tenant ?? null);
     setSubscription(data.subscription ?? null);
@@ -84,6 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       async logout() {
         await api.post("/auth/logout").catch(() => undefined);
         localStorage.removeItem("accessToken");
+        setScopeTenant("");
         setUser(null);
         setTenant(null);
         setSubscription(null);

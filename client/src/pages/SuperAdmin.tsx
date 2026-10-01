@@ -5,7 +5,7 @@ import { Card, CardHeader } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
 import { PageHeader } from "../components/ui/PageHeader";
 import { StatusBadge } from "../components/ui/StatusBadge";
-import { api } from "../services/api";
+import { api, setScopeTenant } from "../services/api";
 import { useAuth } from "../store/AuthContext";
 
 type Tenant = {
@@ -74,15 +74,14 @@ export function SuperAdmin() {
     await load();
   }
 
-  async function impersonate(id: string) {
-    const { data } = await api.post(`/tenants/${id}/impersonate`);
-    localStorage.setItem("accessToken", data.accessToken);
-    window.location.href = "/dashboard";
+  function impersonate(id: string) {
+    setScopeTenant(id);
+    window.location.href = "/app";
   }
 
   if (user?.role !== "SUPER_ADMIN") {
     return (
-      <div className="p-4 sm:p-8">
+      <div className="p-4 sm:p-7">
         <Card className="flex items-center gap-3 p-6 text-muted">
           <ShieldAlert size={22} />
           Accès réservé au super admin.
@@ -92,7 +91,7 @@ export function SuperAdmin() {
   }
 
   return (
-    <div className="space-y-6 p-4 sm:p-8">
+    <div className="space-y-6 p-4 sm:p-7">
       <PageHeader title="Cabinets" description="Création, suspension et supervision des cabinets de la plateforme." />
 
       <div className="grid gap-4 sm:grid-cols-3">

@@ -71,9 +71,12 @@ export function Header() {
           <Link to="/login" className="text-sm font-bold text-muted transition hover:text-ink">
             Connexion
           </Link>
-          <a href="#contact" className={ctaClass("primary", "h-10 px-5 text-xs")}>
+          <Link to="/portail" className="text-sm font-bold text-muted transition hover:text-ink">
+            Espace patient
+          </Link>
+          <Link to="/rdv" className={ctaClass("primary", "h-10 px-5 text-xs")}>
             <CalendarCheck size={16} /> Prendre rendez-vous
-          </a>
+          </Link>
         </div>
         <button
           onClick={() => setOpen(true)}
@@ -116,9 +119,12 @@ export function Header() {
                 <Link to="/login" onClick={() => setOpen(false)} className={ctaClass("outline")}>
                   Connexion
                 </Link>
-                <a href="#contact" onClick={() => setOpen(false)} className={ctaClass("primary")}>
+                <Link to="/portail" onClick={() => setOpen(false)} className={ctaClass("outline")}>
+                  Espace patient
+                </Link>
+                <Link to="/rdv" onClick={() => setOpen(false)} className={ctaClass("primary")}>
                   <CalendarCheck size={16} /> Prendre rendez-vous
-                </a>
+                </Link>
               </div>
             </motion.div>
           </motion.div>

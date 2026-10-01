@@ -7,11 +7,13 @@ export interface IClient extends Document {
   lastName: string;
   email?: string;
   phone?: string;
+  phoneKey?: string;
+  portalCode?: string;
   address?: string;
   birthDate?: Date;
   notes?: string;
   tags: string[];
-  createdBy: mongoose.Types.ObjectId;
+  createdBy?: mongoose.Types.ObjectId;
 }
 
 const clientSchema = new Schema<IClient>(
@@ -22,16 +24,19 @@ const clientSchema = new Schema<IClient>(
     lastName: { type: String, required: true, trim: true },
     email: { type: String, lowercase: true, trim: true },
     phone: String,
+    phoneKey: String,
+    portalCode: { type: String, select: false },
     address: String,
     birthDate: Date,
     notes: String,
     tags: [{ type: String, trim: true }],
-    createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true }
+    createdBy: { type: Schema.Types.ObjectId, ref: "User" }
   },
   { timestamps: true }
 );
 
 clientSchema.index({ tenant: 1, createdAt: -1 });
+clientSchema.index({ tenant: 1, phoneKey: 1 });
 clientSchema.index({ firstName: "text", lastName: "text", email: "text", phone: "text" });
 
 export const Client: Model<IClient> = mongoose.model<IClient>("Client", clientSchema);

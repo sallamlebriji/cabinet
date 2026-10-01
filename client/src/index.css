@@ -320,6 +320,31 @@ body {
     border-radius: 999px;
   }
 
+  .app-table {
+    @apply w-full text-left text-sm;
+  }
+
+  .app-table th {
+    @apply whitespace-nowrap border-b border-hairline bg-slate-50/70 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-400;
+  }
+
+  .app-table td {
+    @apply border-b border-hairline px-4 py-3 align-middle;
+  }
+
+  .app-table tbody tr:last-child td {
+    @apply border-b-0;
+  }
+
+  .app-table tbody tr {
+    @apply transition-colors hover:bg-slate-50/70;
+  }
+
+  .app-table .num {
+    @apply whitespace-nowrap text-right;
+    font-variant-numeric: tabular-nums;
+  }
+
   .skeleton {
     @apply animate-pulse rounded-md bg-slate-200/70;
   }

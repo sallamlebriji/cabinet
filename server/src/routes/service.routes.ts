@@ -6,9 +6,9 @@ import { mongoIdParam, serviceValidator } from "../validators/common.validators.
 
 export const serviceRoutes = Router();
 serviceRoutes.use(protect);
-serviceRoutes.use(scopeTenant, checkTenantActive, requireModule("settings"));
+serviceRoutes.use(scopeTenant, checkTenantActive, requireModule("appointments"));
 serviceRoutes.get("/", listServices);
-serviceRoutes.use(allowRoles("SUPER_ADMIN", "ADMIN_TENANT"));
+serviceRoutes.use(allowRoles("SUPER_ADMIN", "ADMIN_TENANT", "MANAGER"));
 serviceRoutes.post("/", serviceValidator, validate, createService);
 serviceRoutes.put("/:id", mongoIdParam, serviceValidator, validate, updateService);
 serviceRoutes.delete("/:id", mongoIdParam, validate, deleteService);

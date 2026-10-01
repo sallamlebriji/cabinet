@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, CalendarCheck, CalendarDays, FileText, Users, Wallet } from "lucide-react";
+import { ArrowRight, CalendarCheck, CalendarDays, Check, FileText, Globe, Users, Wallet, X } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { motion } from "framer-motion";
 import { Card, CardHeader } from "../components/ui/Card";
@@ -16,6 +16,7 @@ type Appointment = {
   _id: string;
   startAt: string;
   status: string;
+  source?: string;
   client?: { firstName: string; lastName: string };
   service?: { name: string };
 };
@@ -38,14 +39,27 @@ export function Dashboard() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    Promise.allSettled([api.get("/dashboard/stats"), api.get("/appointments"), api.get("/invoices")]).then(([statsRes, apptRes, invRes]) => {
-      if (statsRes.status === "fulfilled") setStats(statsRes.value.data.stats);
-      if (apptRes.status === "fulfilled") setAppointments(apptRes.value.data.items);
-      if (invRes.status === "fulfilled") setInvoices(invRes.value.data.items);
-      setLoading(false);
-    });
+  const load = useCallback(async () => {
+    const [statsRes, apptRes, invRes] = await Promise.allSettled([api.get("/dashboard/stats"), api.get("/appointments"), api.get("/invoices")]);
+    if (statsRes.status === "fulfilled") setStats(statsRes.value.data.stats);
+    if (apptRes.status === "fulfilled") setAppointments(apptRes.value.data.items);
+    if (invRes.status === "fulfilled") setInvoices(invRes.value.data.items);
+    setLoading(false);
   }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const requests = useMemo(
+    () => appointments.filter((item) => item.status === "pending" && new Date(item.startAt) > new Date()).sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime()),
+    [appointments]
+  );
+
+  async function answer(id: string, status: "confirmed" | "cancelled") {
+    await api.patch(`/appointments/${id}/status`, { status }).catch(() => undefined);
+    await load();
+  }
 
   const upcoming = useMemo(() => {
     const now = new Date();
@@ -76,7 +90,7 @@ export function Dashboard() {
   const firstName = user?.name.split(" ")[0] ?? "";
 
   return (
-    <div className="space-y-6 p-4 sm:p-8">
+    <div className="space-y-6 p-4 sm:p-7">
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
         <PageHeader title={`${greeting()}, ${firstName}`} description="Voici l'activité de votre cabinet aujourd'hui." />
       </motion.div>
@@ -87,6 +101,37 @@ export function Dashboard() {
         <StatCard loading={loading} label="Encaissé" value={`${money.format(collected)} MAD`} hint="Paiements reçus" icon={Wallet} />
         <StatCard loading={loading} label="Reste à encaisser" value={`${money.format(outstanding)} MAD`} hint={`${invoices.filter((i) => i.status !== "paid").length} facture(s) ouverte(s)`} icon={FileText} />
       </div>
+
+      {requests.length > 0 && (
+        <Card className="overflow-hidden border-amber-200">
+          <CardHeader title={`${requests.length} rendez-vous à confirmer`} description="Demandes en attente, dont celles reçues par la réservation en ligne." />
+          <ul className="divide-y divide-hairline">
+            {requests.slice(0, 5).map((item) => (
+              <li key={item._id} className="flex flex-wrap items-center gap-3 px-5 py-3">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-ink">
+                    {item.client ? `${item.client.firstName} ${item.client.lastName}` : "Client"}
+                    {item.source === "online" && (
+                      <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-sage-50 px-2 py-0.5 text-[11px] font-medium text-sage-700">
+                        <Globe size={11} /> En ligne
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-xs capitalize text-muted">
+                    {new Date(item.startAt).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })} à {new Date(item.startAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })} · {item.service?.name ?? "Service"}
+                  </p>
+                </div>
+                <button type="button" onClick={() => void answer(item._id, "confirmed")} className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-emerald-600 px-3 text-xs font-medium text-white transition hover:bg-emerald-700">
+                  <Check size={14} /> Confirmer
+                </button>
+                <button type="button" onClick={() => void answer(item._id, "cancelled")} className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-hairline bg-white px-3 text-xs font-medium text-slate-600 transition hover:bg-slate-50">
+                  <X size={14} /> Refuser
+                </button>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
 
       <div className="grid gap-4 xl:grid-cols-[1.5fr_1fr]">
         <Card>
@@ -112,7 +157,7 @@ export function Dashboard() {
           <CardHeader
             title="Prochains rendez-vous"
             action={
-              <Link to="/appointments" className="inline-flex items-center gap-1 text-xs font-semibold text-sage-600 hover:text-sage-700">
+              <Link to="/agenda" className="inline-flex items-center gap-1 text-xs font-semibold text-sage-600 hover:text-sage-700">
                 Tout voir <ArrowRight size={13} />
               </Link>
             }

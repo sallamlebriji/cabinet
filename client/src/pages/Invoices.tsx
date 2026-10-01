@@ -1,129 +1,125 @@
-import { useEffect, useState } from "react";
-import { Download, FileText } from "lucide-react";
+import { useState } from "react";
+import { Download, Plus, Receipt, Trash2, Wallet } from "lucide-react";
+import { Link } from "react-router-dom";
+import { BillingFormModal, PaymentModal } from "../components/BillingModals";
+import { IconButton, Kpi, Segmented, TableSkeleton } from "../components/ui/Bits";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
 import { PageHeader } from "../components/ui/PageHeader";
 import { StatusBadge } from "../components/ui/StatusBadge";
-import { api } from "../services/api";
+import { useToast } from "../components/ui/Toast";
+import { useApi } from "../hooks/useApi";
+import { apiError, fmtDate, fullName, money } from "../lib/format";
+import type { Invoice } from "../lib/types";
+import { api, downloadFile } from "../services/api";
 
-type Invoice = {
-  _id: string;
-  number: string;
-  total: number;
-  paidAmount: number;
-  status: "paid" | "unpaid" | "partial";
-  createdAt: string;
-  client?: { firstName: string; lastName: string };
-};
-
-const money = new Intl.NumberFormat("fr-MA", { maximumFractionDigits: 0 });
-const filters = [
-  { value: "all", label: "Toutes" },
-  { value: "paid", label: "Payées" },
-  { value: "partial", label: "Partielles" },
-  { value: "unpaid", label: "Impayées" }
-];
+type Filter = "all" | Invoice["status"];
 
 export function Invoices() {
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [filter, setFilter] = useState("all");
-  const [loading, setLoading] = useState(true);
-  const [downloading, setDownloading] = useState("");
+  const toast = useToast();
+  const { data, loading, reload } = useApi<{ items: Invoice[] }>("/invoices");
+  const [filter, setFilter] = useState<Filter>("all");
+  const [creating, setCreating] = useState(false);
+  const [paying, setPaying] = useState<Invoice | null>(null);
+  const invoices = data?.items ?? [];
+  const visible = filter === "all" ? invoices : invoices.filter((invoice) => invoice.status === filter);
+  const total = invoices.reduce((sum, invoice) => sum + invoice.total, 0);
+  const paid = invoices.reduce((sum, invoice) => sum + invoice.paidAmount, 0);
 
-  useEffect(() => {
-    api
-      .get("/invoices")
-      .then(({ data }) => setInvoices(data.items))
-      .finally(() => setLoading(false));
-  }, []);
-
-  async function downloadPdf(invoice: Invoice) {
-    setDownloading(invoice._id);
+  async function remove(invoice: Invoice) {
+    if (!window.confirm(`Supprimer la facture ${invoice.number} ?`)) return;
     try {
-      const { data } = await api.get(`/invoices/${invoice._id}/pdf`, { responseType: "blob" });
-      const url = URL.createObjectURL(data);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${invoice.number}.pdf`;
-      link.click();
-      URL.revokeObjectURL(url);
-    } finally {
-      setDownloading("");
+      await api.delete(`/invoices/${invoice._id}`);
+      toast.ok("Facture supprimée.");
+      await reload();
+    } catch (error) {
+      toast.error(apiError(error));
     }
   }
 
-  const visible = filter === "all" ? invoices : invoices.filter((invoice) => invoice.status === filter);
-  const total = invoices.reduce((sum, invoice) => sum + invoice.total, 0);
-  const paid = invoices.reduce((sum, invoice) => sum + (invoice.paidAmount ?? 0), 0);
-
   return (
-    <div className="space-y-6 p-4 sm:p-8">
-      <PageHeader title="Facturation" description="Suivi des factures, des paiements et export PDF." />
+    <div className="space-y-6 p-4 sm:p-7">
+      <PageHeader
+        title="Facturation"
+        description="Factures émises, encaissements et export PDF."
+        actions={
+          <Button onClick={() => setCreating(true)}>
+            <Plus size={16} /> Nouvelle facture
+          </Button>
+        }
+      />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        {[
-          { label: "Total facturé", value: total },
-          { label: "Encaissé", value: paid },
-          { label: "Reste à encaisser", value: Math.max(total - paid, 0) }
-        ].map((item) => (
-          <Card key={item.label} className="p-5">
-            <p className="text-sm font-medium text-muted">{item.label}</p>
-            <p className="app-num mt-2 text-2xl font-semibold text-ink">
-              {money.format(item.value)} <span className="text-sm font-medium text-muted">MAD</span>
-            </p>
-          </Card>
-        ))}
+        <Kpi label="Total facturé" value={money(total)} hint={`${invoices.length} facture(s)`} />
+        <Kpi label="Encaissé" value={money(paid)} hint={total ? `${Math.round((paid / total) * 100)} % du facturé` : undefined} />
+        <Kpi label="Reste à encaisser" value={money(Math.max(total - paid, 0))} hint={`${invoices.filter((invoice) => invoice.status !== "paid").length} facture(s) ouverte(s)`} />
       </div>
 
       <Card className="overflow-hidden">
-        <div className="flex flex-wrap gap-1.5 border-b border-hairline p-3">
-          {filters.map((item) => (
-            <button
-              key={item.value}
-              onClick={() => setFilter(item.value)}
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${filter === item.value ? "bg-sage-50 text-sage-700" : "text-muted hover:bg-slate-100 hover:text-ink"}`}
-            >
-              {item.label}
-            </button>
-          ))}
+        <div className="border-b border-hairline p-3">
+          <Segmented
+            value={filter}
+            onChange={setFilter}
+            options={[
+              { value: "all", label: "Toutes" },
+              { value: "unpaid", label: "Impayées" },
+              { value: "partial", label: "Partielles" },
+              { value: "paid", label: "Payées" }
+            ]}
+          />
         </div>
-
         {loading ? (
-          <div className="space-y-3 p-5">
-            {[0, 1, 2].map((row) => (
-              <div key={row} className="skeleton h-10 w-full" />
-            ))}
-          </div>
+          <TableSkeleton />
         ) : visible.length ? (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+            <table className="app-table">
               <thead>
-                <tr className="border-b border-hairline text-xs text-muted">
-                  <th className="px-5 py-3 font-medium">Facture</th>
-                  <th className="px-5 py-3 font-medium">Client</th>
-                  <th className="px-5 py-3 font-medium">Date</th>
-                  <th className="px-5 py-3 text-right font-medium">Montant</th>
-                  <th className="px-5 py-3 text-right font-medium">Payé</th>
-                  <th className="px-5 py-3 font-medium">Statut</th>
-                  <th className="px-5 py-3" />
+                <tr>
+                  <th>Facture</th>
+                  <th>Client</th>
+                  <th className="hidden md:table-cell">Date</th>
+                  <th className="num">Montant</th>
+                  <th className="num hidden sm:table-cell">Reste dû</th>
+                  <th>Statut</th>
+                  <th />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-hairline">
+              <tbody>
                 {visible.map((invoice) => (
-                  <tr key={invoice._id} className="transition hover:bg-slate-50/70">
-                    <td className="whitespace-nowrap px-5 py-3.5 font-medium text-ink">{invoice.number}</td>
-                    <td className="px-5 py-3.5 text-muted">{invoice.client ? `${invoice.client.firstName} ${invoice.client.lastName}` : "—"}</td>
-                    <td className="whitespace-nowrap px-5 py-3.5 text-muted">{new Date(invoice.createdAt).toLocaleDateString("fr-FR")}</td>
-                    <td className="app-num whitespace-nowrap px-5 py-3.5 text-right font-medium text-ink">{money.format(invoice.total)} MAD</td>
-                    <td className="app-num whitespace-nowrap px-5 py-3.5 text-right text-muted">{money.format(invoice.paidAmount ?? 0)} MAD</td>
-                    <td className="px-5 py-3.5">
+                  <tr key={invoice._id}>
+                    <td className="whitespace-nowrap font-medium text-ink">{invoice.number}</td>
+                    <td>
+                      {invoice.client ? (
+                        <Link to={`/clients/${invoice.client._id}`} className="text-slate-700 hover:text-sage-700">
+                          {fullName(invoice.client)}
+                        </Link>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td className="hidden whitespace-nowrap text-muted md:table-cell">{fmtDate(invoice.createdAt)}</td>
+                    <td className="num font-medium">{money(invoice.total)}</td>
+                    <td className="num hidden text-muted sm:table-cell">{money(Math.max(invoice.total - invoice.paidAmount, 0))}</td>
+                    <td>
                       <StatusBadge status={invoice.status} />
                     </td>
-                    <td className="px-5 py-3.5 text-right">
-                      <Button variant="secondary" className="h-8 px-3 text-xs" disabled={downloading === invoice._id} onClick={() => void downloadPdf(invoice)}>
-                        <Download size={14} /> PDF
-                      </Button>
+                    <td>
+                      <div className="flex justify-end gap-1.5">
+                        {invoice.status !== "paid" && (
+                          <Button variant="secondary" className="h-8 px-2.5 text-xs" onClick={() => setPaying(invoice)}>
+                            <Wallet size={14} /> Encaisser
+                          </Button>
+                        )}
+                        <IconButton label="Télécharger le PDF" onClick={() => void downloadFile(api, `/invoices/${invoice._id}/pdf`, `${invoice.number}.pdf`).catch((error) => toast.error(apiError(error)))}>
+                          <Download size={14} />
+                        </IconButton>
+                        {invoice.paidAmount === 0 && (
+                          <IconButton label="Supprimer" tone="danger" onClick={() => void remove(invoice)}>
+                            <Trash2 size={14} />
+                          </IconButton>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -131,9 +127,12 @@ export function Invoices() {
             </table>
           </div>
         ) : (
-          <EmptyState icon={FileText} title="Aucune facture" description="Aucune facture ne correspond à ce filtre." />
+          <EmptyState icon={Receipt} title="Aucune facture" description="Aucune facture ne correspond à ce filtre." />
         )}
       </Card>
+
+      <BillingFormModal kind="invoice" open={creating} onClose={() => setCreating(false)} onSaved={() => void reload()} />
+      <PaymentModal invoice={paying} onClose={() => setPaying(null)} onSaved={() => void reload()} />
     </div>
   );
 }

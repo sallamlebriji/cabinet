@@ -10,7 +10,7 @@ export function AccessDenied() {
         </div>
         <h2 className="mt-4 text-lg font-semibold text-ink">Accès refusé</h2>
         <p className="mt-1.5 text-sm text-muted">Votre rôle ou votre abonnement ne permet pas d'ouvrir cette page.</p>
-        <Link to="/clients" className="mt-5 inline-flex h-10 items-center rounded-lg border border-hairline bg-white px-4 text-sm font-semibold text-ink shadow-card transition hover:bg-slate-50">
+        <Link to="/app" className="mt-5 inline-flex h-10 items-center rounded-lg border border-hairline bg-white px-4 text-sm font-semibold text-ink shadow-card transition hover:bg-slate-50">
           Retour à l'espace
         </Link>
       </div>

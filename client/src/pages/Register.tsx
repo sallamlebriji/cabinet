@@ -23,7 +23,7 @@ export function Register() {
     setIsSubmitting(true);
     try {
       await register(form.role === "SUPER_ADMIN" ? { ...form, cabinetName: undefined, tenantName: undefined } : { ...form, tenantName: form.cabinetName });
-      navigate("/dashboard");
+      navigate("/app");
     } catch {
       setError("Inscription impossible. Vérifiez les informations saisies.");
     } finally {

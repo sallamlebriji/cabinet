@@ -9,7 +9,10 @@ const storage = multer.diskStorage({
   }
 });
 
+const ALLOWED = [".pdf", ".png", ".jpg", ".jpeg", ".webp", ".doc", ".docx", ".xls", ".xlsx"];
+
 export const upload = multer({
   storage,
+  fileFilter: (_req, file, cb) => cb(null, ALLOWED.includes(path.extname(file.originalname).toLowerCase())),
   limits: { fileSize: 10 * 1024 * 1024 }
 });
